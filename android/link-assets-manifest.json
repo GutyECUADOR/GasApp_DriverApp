@@ -1,0 +1,133 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/NunitoSans-Bold.ttf",
+      "sha1": "c7e885d00c275b5385579d3479f48392013334e7"
+    },
+    {
+      "path": "assets/fonts/NunitoSans-ExtraBold.ttf",
+      "sha1": "15819f2aba91bda9d9931f50aed113eba5adde1e"
+    },
+    {
+      "path": "assets/fonts/NunitoSans-Regular.ttf",
+      "sha1": "771b9299e1d5d4239c032c7d4243a6f9343f89c4"
+    },
+    {
+      "path": "assets/fonts/NunitoSans-SemiBold.ttf",
+      "sha1": "85055562e9e48d7c1ca4eee938f5cf90f740b3c1"
+    },
+    {
+      "path": "assets/fonts/Rasa-Bold.ttf",
+      "sha1": "1a83f36148f9c1c1224de549bfa8ce8f363275ec"
+    },
+    {
+      "path": "assets/images/app_icon.png",
+      "sha1": "30d548cc6985a8754e4e7b4658e975df33a1b36d"
+    },
+    {
+      "path": "assets/images/icons/cab.png",
+      "sha1": "cf43941f1f6b3c48903c65030d14ab9dfec35c78"
+    },
+    {
+      "path": "assets/images/icons/circle.png",
+      "sha1": "d35d1b3e59b1c4f2f55e6f77fb64b826677cc6e9"
+    },
+    {
+      "path": "assets/images/icons/marker2.png",
+      "sha1": "74fc5796f5ea6614d5e7a56255043b686290b831"
+    },
+    {
+      "path": "assets/images/icons/marker3.png",
+      "sha1": "fed9f2cf027734efa9574a630b264bbdd5a0c8b4"
+    },
+    {
+      "path": "assets/images/invite_friend.png",
+      "sha1": "682aeeae09316aff50ab9edc068237eeb89f134e"
+    },
+    {
+      "path": "assets/images/login.png",
+      "sha1": "98b62ccf39631b8cdd55d5714cfa8388039d5576"
+    },
+    {
+      "path": "assets/images/paymentMethods/visa.png",
+      "sha1": "9d4c0b105103fa7790a475a04fc6e1773d102c0c"
+    },
+    {
+      "path": "assets/images/paymentMethods/wallet.png",
+      "sha1": "b5942ffb6349fd0eb6e069eb67690affe421ca5b"
+    },
+    {
+      "path": "assets/images/users/user1.png",
+      "sha1": "3cb29aedd0cd689e40981adc444aa400a762188d"
+    },
+    {
+      "path": "assets/images/users/user10.png",
+      "sha1": "2237861160344f2b669fcb161aaed38613e91898"
+    },
+    {
+      "path": "assets/images/users/user11.png",
+      "sha1": "10bc1dd3e285a3e24661d9a59ff4c42ca41a2568"
+    },
+    {
+      "path": "assets/images/users/user12.png",
+      "sha1": "f69a6ac87b9783ed5afd76eb2b4df130888aea2d"
+    },
+    {
+      "path": "assets/images/users/user13.png",
+      "sha1": "6b252f0691a38f0d79224675c52e3be5114072ee"
+    },
+    {
+      "path": "assets/images/users/user14.png",
+      "sha1": "aaf6bb4350aeae79e6ef6c78bdf02825dc751527"
+    },
+    {
+      "path": "assets/images/users/user15.png",
+      "sha1": "51a10b69c7dbfa94957f6b27e4129e5cee701c92"
+    },
+    {
+      "path": "assets/images/users/user16.png",
+      "sha1": "19ebf45375d257c394b89f19490378a99ff52b0e"
+    },
+    {
+      "path": "assets/images/users/user17.png",
+      "sha1": "1ccbc5148acd6cf94ecc51f1abb64807c51da331"
+    },
+    {
+      "path": "assets/images/users/user18.png",
+      "sha1": "7c6cd4c867ac96c337a9c82be70bf221ef41aae7"
+    },
+    {
+      "path": "assets/images/users/user2.png",
+      "sha1": "fc534ce90b15991741e9042056bb6885f85f17ca"
+    },
+    {
+      "path": "assets/images/users/user3.png",
+      "sha1": "ce890fe01ffd1277ad6e0f767f5cfdd80aa27f1b"
+    },
+    {
+      "path": "assets/images/users/user4.png",
+      "sha1": "79a30f392ec60738558167a46a59afefa5944d4a"
+    },
+    {
+      "path": "assets/images/users/user5.png",
+      "sha1": "ca3832e0131948872d0b83c0467642bc28cb188b"
+    },
+    {
+      "path": "assets/images/users/user6.png",
+      "sha1": "67803a28a63019ec58f36ed910a4bd946f929127"
+    },
+    {
+      "path": "assets/images/users/user7.png",
+      "sha1": "56dc076e0dc9a456de2a8582bd73c4ba4cb2258c"
+    },
+    {
+      "path": "assets/images/users/user8.png",
+      "sha1": "25291c388e566977b7444ef03263371d3333a956"
+    },
+    {
+      "path": "assets/images/users/user9.png",
+      "sha1": "0a85a55bf45da20f5c2839fccaf9bcb2510f4214"
+    }
+  ]
+}
