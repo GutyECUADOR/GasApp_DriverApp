@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
-import React, {useContext, useState} from 'react';
+import React, {useContext, useState, useEffect} from 'react';
 import {Colors, Fonts, Sizes} from '../../constants/styles';
 import {Overlay} from '@rneui/themed';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
@@ -19,10 +20,24 @@ const RegisterScreen = ({navigation}) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('DRIVER_ROLE');
   const [password, setPassword] = useState('');
   const [isLoading, setisLoading] = useState(false);
   const [isSuccess, setisSuccess] = useState(false);
-  const { signUp } = useContext(AuthContext)
+  const { signUp, errorRegisterMessage, removeRegisterError } = useContext(AuthContext)
+
+  useEffect(() => {
+    if (errorRegisterMessage.length === 0) {
+      return;
+    }
+    Alert.alert('Registro Incorrecto', errorRegisterMessage, [ {
+      text: 'Aceptar',
+      onPress: () => {
+        removeRegisterError();
+      }
+    }]);
+
+  }, [errorRegisterMessage])
 
   return (
     <View style={{flex: 1, backgroundColor: Colors.whiteColor}}>
@@ -49,14 +64,12 @@ const RegisterScreen = ({navigation}) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() => {
+        onPress={ async () => {
           setisLoading(true);
-          signUp({ name, phone, email, password })
-          /* setTimeout(() => {
-            setisLoading(false);
-            setisSuccess(true);
-            //navigation.push('Login');
-          }, 2000); */
+          await signUp({ name, phone, email, password, role })
+         
+          setisLoading(false);
+          
         }}
         style={styles.buttonStyle}>
         <Text style={{...Fonts.whiteColor18Bold}}>Registrarme</Text>
@@ -172,7 +185,7 @@ const RegisterScreen = ({navigation}) => {
           activeOpacity={0.8}
           onPress={() => {
               navigation.push('Login');
-              isSuccess(false);
+              
           }}
           style={styles.buttonStyle}>
           <Text style={{...Fonts.whiteColor18Bold}}>Aceptar</Text>

@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type AuthContextProps = {
     errorMessage: string;
+    errorRegisterMessage: string;
     token: string | null;
     user: User | null;
     status: 'checking' | 'authenticated' | 'not-authenticated'
@@ -13,13 +14,15 @@ type AuthContextProps = {
     signUp: ( registerData: RegisterData ) => void;
     logOut: () => void;
     removeError: () => void;
+    removeRegisterError : () => void;
 }
 
 const authInitialState: AuthState = {
     status: 'checking',
     token: null,
     user: null,
-    errorMessage: ''
+    errorMessage: '',
+    errorRegisterMessage: ''
 }
 
 export const AuthContext = createContext({} as AuthContextProps);
@@ -107,11 +110,10 @@ export const AuthProvider = ({ children }:any) => {
 
     };
    
-    const signUp = async( { name, phone, email, password }: RegisterData ) => {
+    const signUp = async( { name, phone, email, password, role }: RegisterData ) => {
 
         try {
-         
-            const { data } = await gasAPI.post<LoginResponse>('/api/register', { name, phone, email, password,  } );
+            const { data } = await gasAPI.post<LoginResponse>('/api/register', { name, phone, email, password, role  } );
             dispatch({ 
                 type: 'signUp',
                 payload: {
@@ -120,13 +122,14 @@ export const AuthProvider = ({ children }:any) => {
                 }
             });
 
+            await AsyncStorage.setItem('token', data.access_token)
             console.log(data);
-            //await AsyncStorage.setItem('token', data.token );
 
         } catch (error: any) {
+            console.log(error.response.data);
             dispatch({ 
-                type: 'addError', 
-                payload: error.response.data.errors[0].msg || 'Revise la información'
+                type: 'addRegisterError', 
+                payload: error.response.data.message || 'Información incorrecta'
             });
         }
 
@@ -136,8 +139,13 @@ export const AuthProvider = ({ children }:any) => {
         await AsyncStorage.removeItem('token');
         dispatch({ type: 'logout' });
     };
+
     const removeError = () => {
         dispatch({ type: 'removeError' });
+    };
+
+    const removeRegisterError = () => {
+        dispatch({ type: 'removeRegisterError' });
     };
 
 
@@ -147,6 +155,7 @@ export const AuthProvider = ({ children }:any) => {
             signUp,
             signIn,
             logOut,
+            removeRegisterError,
             removeError,
         }}>
             { children }

@@ -11,12 +11,14 @@ export interface RegisterData {
     phone: string, 
     email: string, 
     password: string
+    role: string
 }
 
 export interface LoginResponse {
     user:         User;
     access_token: string;
     token_type:   string;
+    errors: Object
 }
 
 export interface User {
