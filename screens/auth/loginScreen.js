@@ -7,14 +7,22 @@ import {
   Image,
   BackHandler,
   Platform,
+  TextInput,
+  Alert
 } from 'react-native';
-import React, {useState, useCallback} from 'react';
+import React, {useState, useContext, useCallback, useEffect} from 'react';
 import {Colors, Fonts, Sizes, screenHeight} from '../../constants/styles';
-import IntlPhoneInput from 'react-native-intl-phone-input';
 import {useFocusEffect} from '@react-navigation/native';
 import MyStatusBar from '../../components/myStatusBar';
+import { AuthContext } from '../../context/AuthContext';
 
 const LoginScreen = ({navigation}) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [backClickCount, setBackClickCount] = useState(0);
+
+  const { signIn, errorMessage, removeError } = useContext(AuthContext)
+
   const backAction = () => {
     if (Platform.OS === 'ios') {
       navigation.addListener('beforeRemove', e => {
@@ -37,6 +45,20 @@ const LoginScreen = ({navigation}) => {
     }, [backAction]),
   );
 
+  useEffect(() => {
+    if (errorMessage.length === 0) {
+      return;
+    }
+    Alert.alert('Login Incorrecto', errorMessage, [ {
+      text: 'Aceptar',
+      onPress: () => {
+        removeError();
+      }
+    }]);
+
+  }, [errorMessage])
+  
+
   function _spring() {
     setBackClickCount(1);
     setTimeout(() => {
@@ -44,8 +66,6 @@ const LoginScreen = ({navigation}) => {
     }, 1000);
   }
 
-  const [backClickCount, setBackClickCount] = useState(0);
-  const [phoneNumber, setPhoneNumber] = useState('');
 
   return (
     <View style={{flex: 1, backgroundColor: Colors.whiteColor}}>
@@ -55,25 +75,40 @@ const LoginScreen = ({navigation}) => {
           automaticallyAdjustKeyboardInsets={true}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{justifyContent: 'flex-end', flexGrow: 1}}>
+        </ScrollView>
           {loginImage()}
           {welcomeInfo()}
-          {mobileNumberInfo()}
-        </ScrollView>
-        {continueButton()}
+          {loginForm()}
+          {loginButton()}
+          {registerButton()}
       </View>
       {exitInfo()}
     </View>
   );
 
-  function continueButton() {
+  function loginButton() {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          signIn({ email, password })
+          //navigation.push('Home');
+        }}
+        style={styles.buttonStyle}>
+        <Text style={{...Fonts.whiteColor18Bold}}>Iniciar Sesión</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  function registerButton() {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
           navigation.push('Register');
         }}
-        style={styles.buttonStyle}>
-        <Text style={{...Fonts.whiteColor18Bold}}>Continue</Text>
+        style={styles.buttonRegisterStyle}>
+        <Text style={{...Fonts.blackColor15Bold}}>Aun no tienes cuenta? Clic Aqui</Text>
       </TouchableOpacity>
     );
   }
@@ -82,32 +117,39 @@ const LoginScreen = ({navigation}) => {
     return backClickCount == 1 ? (
       <View style={styles.exitInfoWrapStyle}>
         <Text style={{...Fonts.whiteColor15SemiBold}}>
-          Press Back Once Again to Exit
+          Presiona 2 veces para salir
         </Text>
       </View>
     ) : null;
   }
 
-  function mobileNumberInfo() {
+  function loginForm() {
     return (
       <View
         style={{
           marginHorizontal: Sizes.fixPadding * 2.0,
           marginBottom: Sizes.fixPadding,
         }}>
-        <IntlPhoneInput
-          onChangeText={({phoneNumber}) => setPhoneNumber(phoneNumber)}
-          defaultCountry="IN"
-          containerStyle={{backgroundColor: Colors.whiteColor}}
-          placeholder={'Enter Your Number'}
-          phoneInputStyle={styles.phoneInputStyle}
-          dialCodeTextStyle={{
-            ...Fonts.blackColor15Bold,
-            marginHorizontal: Sizes.fixPadding - 2.0,
-          }}
-          modalCountryItemCountryNameStyle={{...Fonts.blackColor16Bold}}
-          flagStyle={{width: 40.0, height: 40.0, marginBottom: 10.0}}
-        />
+          <Text style={{...Fonts.grayColor15SemiBold}}>Correo</Text>
+          <TextInput
+            value={email}
+            onChangeText={value => setEmail(value)}
+            style={styles.textFieldStyle}
+            cursorColor={Colors.primaryColor}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            placeholder='micorreo@gmail.com'
+          />
+          <Text style={{...Fonts.grayColor15SemiBold}}>Clave</Text>
+          <TextInput
+            secureTextEntry={true}
+            value={password}
+            onChangeText={value => setPassword(value)}
+            style={styles.textFieldStyle}
+            cursorColor={Colors.primaryColor}
+            placeholder='**********'
+          />
+        
       </View>
     );
   }
@@ -120,11 +162,12 @@ const LoginScreen = ({navigation}) => {
           marginTop: Sizes.fixPadding * 4.0,
           marginBottom: Sizes.fixPadding * 2.0,
         }}>
-        <Text style={{...Fonts.blackColor20Bold}}>Welcome to Cabwind</Text>
+        <Text style={{...Fonts.blackColor20Bold}}>Bienvenido a MiGas Driver App</Text>
         <Text
           style={{marginTop: Sizes.fixPadding, ...Fonts.grayColor14SemiBold}}>
-          Enter your phone number to continue
+          Ingresa tu correo y clave para comenzar
         </Text>
+        
       </View>
     );
   }
@@ -132,11 +175,11 @@ const LoginScreen = ({navigation}) => {
   function loginImage() {
     return (
       <Image
-        source={require('../../assets/images/login.png')}
+        source={require('../../assets/images/app_icon.png')}
         style={{
-          width: '100%',
+          width: 'auto',
           height: screenHeight / 3.0,
-          resizeMode: 'stretch',
+          resizeMode: 'contain',
         }}
       />
     );
@@ -151,7 +194,15 @@ const styles = StyleSheet.create({
     ...Fonts.blackColor15Bold,
     borderBottomColor: Colors.shadowColor,
     borderBottomWidth: 1.0,
-    padding: 0,
+    padding:0
+  },
+  textFieldStyle: {
+    ...Fonts.blackColor16Bold,
+    marginTop: Sizes.fixPadding - 5.0,
+    marginBottom: Sizes.fixPadding - 4.0,
+    padding: 1,
+    borderColor: 'lightgrey',
+    borderBottomWidth: 1, // Puedes ajustar el ancho según tus preferencias
   },
   exitInfoWrapStyle: {
     backgroundColor: Colors.lightBlackColor,
@@ -171,6 +222,11 @@ const styles = StyleSheet.create({
     borderRadius: Sizes.fixPadding - 5.0,
     paddingVertical: Sizes.fixPadding + 3.0,
     marginHorizontal: Sizes.fixPadding * 6.0,
-    marginVertical: Sizes.fixPadding * 2.0,
+    marginVertical: Sizes.fixPadding * 0.25,
+  },
+  buttonRegisterStyle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 20,
   },
 });

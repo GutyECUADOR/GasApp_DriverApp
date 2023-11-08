@@ -1,4 +1,9 @@
-import {Text, View, Image, BackHandler} from 'react-native';
+import {
+  Text,
+  View,
+  Image,
+  BackHandler,
+} from 'react-native';
 import React, {useCallback} from 'react';
 import {Colors, Fonts, Sizes} from '../constants/styles';
 import {useFocusEffect} from '@react-navigation/native';
@@ -48,7 +53,7 @@ const SplashScreen = ({navigation}) => {
           letterSpacing: 3.0,
           ...Fonts.primaryColor24RasaBold,
         }}>
-        CABWIND
+        MI GAS
       </Text>
     );
   }
@@ -57,7 +62,7 @@ const SplashScreen = ({navigation}) => {
     return (
       <Image
         source={require('../assets/images/app_icon.png')}
-        style={{width: 66.0, height: 66.0, resizeMode: 'contain'}}
+        /* style={{width: 66.0, height: 66.0, }} */
       />
     );
   }
