@@ -67,6 +67,7 @@ const HomeScreen = ({navigation}) => {
 
   useEffect(() => {
     centerPosition()
+    updateStatusDriver();
     followUserLocation();
    return () =>{
     // TODO : Cancelar seguimiento al salir de la app
