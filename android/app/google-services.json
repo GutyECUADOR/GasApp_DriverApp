@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "401452226399",
+    "firebase_url": "https://gasappdelivery-8ad02-default-rtdb.firebaseio.com",
+    "project_id": "gasappdelivery-8ad02",
+    "storage_bucket": "gasappdelivery-8ad02.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:401452226399:android:b1b7b8c4f846f9c08b08ea",
+        "android_client_info": {
+          "package_name": "com.gasappecdriver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZH3_ViFCe4ybZn24lMADlFDJj_3rsiVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:401452226399:android:e4a080ef87775fa88b08ea",
+        "android_client_info": {
+          "package_name": "com.gasdeliveryuserapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZH3_ViFCe4ybZn24lMADlFDJj_3rsiVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

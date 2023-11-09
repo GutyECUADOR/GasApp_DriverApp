@@ -7,7 +7,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState, useCallback, useRef} from 'react';
+import React, {useState, useCallback, useRef, useEffect} from 'react';
 import {Colors, Fonts, Sizes} from '../../constants/styles';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -15,9 +15,11 @@ import {useFocusEffect} from '@react-navigation/native';
 import RideRequestsScreen from '../rideRequests/rideRequestsScreen';
 import MyStatusBar from '../../components/myStatusBar';
 import { useLocation } from '../../hooks/useLocation';
+import firestore from '@react-native-firebase/firestore';
 
 const HomeScreen = ({navigation}) => {
 
+  const [pedidos, setPedidos] = useState([])
   const { hasLocation, initialPosition, getCurrentLocation, address } = useLocation();
   const mapViewRef = useRef();
 
@@ -32,6 +34,31 @@ const HomeScreen = ({navigation}) => {
       }
     })
   };
+
+  useEffect(() => {
+    const subscriber = firestore()
+    .collection('pedidos')
+    .onSnapshot(querySnapshot => {
+      const markers = [];
+
+      querySnapshot.forEach(documentSnapshot => {
+        markers.push({
+          id: documentSnapshot.id,
+          coordinate: {
+            latitude: documentSnapshot.get('coordinate').latitude,
+            longitude: documentSnapshot.get('coordinate').longitude,
+          },
+        });
+      });
+
+      console.log('Clientes/Pedidos: ', markers);
+      setPedidos(markers);
+     
+    });
+
+    // Unsubscribe from events when no longer in use
+    return () => subscriber();
+  }, []);
 
   const backAction = () => {
     backClickCount == 1 ? BackHandler.exitApp() : _spring();
