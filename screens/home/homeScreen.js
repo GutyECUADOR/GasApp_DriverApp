@@ -83,7 +83,7 @@ const HomeScreen = ({navigation}) => {
       }
     })
 
-    updateStatusDriver()
+    updateLocationDriver()
   }, [userLocation])
   
 
@@ -101,14 +101,11 @@ const HomeScreen = ({navigation}) => {
             console.log('ID del documento:', doc.id, 'Datos:', doc.data());
             if (doc.data()) {
               const documentoRef = firestore().collection('distribuidores').doc(doc.id);
-              // Crea un objeto GeoPoint con latitud y longitud
-             
-              const geoPoint = new firestore.GeoPoint(latitude, longitude);
               // Actualiza los datos del documento
               documentoRef.update({
-                isActivo: !isOnline,
-                coordinate: geoPoint
+                isActivo: !isOnline
               })
+              setIsOnline(!isOnline);
             }
           });
         }else{
@@ -121,7 +118,54 @@ const HomeScreen = ({navigation}) => {
             id: user.id,
             name: user.name,
             coordinate: geoPoint,
-            isActivo: !isOnline
+            isActivo: false
+          })
+        }
+      })
+      .catch((error) => {
+        console.error('Error al buscar documentos:', error);
+      });
+   
+  };
+
+  const updateLocationDriver = async () => {
+    if (isOnline == false) {
+      // No registrar nueva ubucacion si esta offline
+      return;
+    }
+
+    const { latitude, longitude } = userLocation;
+    // Obtiene una referencia a la colección
+    const coleccion = firestore().collection('distribuidores');
+    // Realiza la consulta para buscar documentos que coincidan con el campo y valor especificados
+    coleccion.where('id', '==', user.id).get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            // doc.data() contiene los datos del documento encontrado
+            console.log(doc.data())
+            console.log('ID del documento:', doc.id, 'Datos:', doc.data());
+            if (doc.data()) {
+              const documentoRef = firestore().collection('distribuidores').doc(doc.id);
+              // Crea un objeto GeoPoint con latitud y longitud
+              const geoPoint = new firestore.GeoPoint(latitude, longitude);
+              // Actualiza los datos del documento
+              documentoRef.update({
+                coordinate: geoPoint
+              })
+            }
+          });
+        }else{
+          // Obtiene una referencia a la colección
+          const coleccion = firestore().collection('distribuidores');
+          // Crea un objeto GeoPoint con latitud y longitud
+          const geoPoint = new firestore.GeoPoint(latitude, longitude);
+          // Añade un nuevo documento con datos
+          coleccion.add({
+            id: user.id,
+            name: user.name,
+            coordinate: geoPoint,
+            isActivo: false
           })
         }
       })
@@ -263,7 +307,6 @@ const HomeScreen = ({navigation}) => {
                 onPress={() => {
                   console.log('Cambiar estado activo: Estado: ' + !isOnline)
                   updateStatusDriver();
-                  setIsOnline(!isOnline);
                   setShowMenu(false);
                 }}
                 style={{
