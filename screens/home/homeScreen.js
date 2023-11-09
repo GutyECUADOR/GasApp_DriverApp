@@ -25,7 +25,7 @@ const HomeScreen = ({navigation}) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
   const { user } = useContext(AuthContext)
-  const { hasLocation, initialPosition, getCurrentLocation, address } = useLocation();
+  const { hasLocation, initialPosition, userLocation, getCurrentLocation, followUserLocation, address } = useLocation();
   const mapViewRef = useRef();
 
   const centerPosition = async () => {
@@ -35,7 +35,7 @@ const HomeScreen = ({navigation}) => {
       center: {
           latitude,
           longitude,
-          zoom:8
+          zoom:12
       }
     })
   };
@@ -65,8 +65,30 @@ const HomeScreen = ({navigation}) => {
     return () => subscriber();
   }, []);
 
+  useEffect(() => {
+    centerPosition()
+    followUserLocation();
+   return () =>{
+    // TODO : Cancelar seguimiento al salir de la app
+   }
+  }, [])
+
+  useEffect(() => {
+    const { latitude, longitude } = userLocation;
+    mapViewRef.current?.animateCamera({
+      center: {
+          latitude,
+          longitude,
+          zoom:12
+      }
+    })
+
+    updateStatusDriver()
+  }, [userLocation])
+  
+
   const updateStatusDriver = async () => {
-    const { latitude, longitude } = await getCurrentLocation()
+    const { latitude, longitude } = userLocation;
     // Obtiene una referencia a la colección
     const coleccion = firestore().collection('distribuidores');
     // Realiza la consulta para buscar documentos que coincidan con el campo y valor especificados
@@ -109,6 +131,7 @@ const HomeScreen = ({navigation}) => {
    
   };
 
+  
   const backAction = () => {
     backClickCount == 1 ? BackHandler.exitApp() : _spring();
     return true;
