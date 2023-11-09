@@ -7,7 +7,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState, useCallback, useRef, useEffect} from 'react';
+import React, {useState, useCallback, useRef, useEffect, useContext} from 'react';
 import {Colors, Fonts, Sizes} from '../../constants/styles';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -16,10 +16,15 @@ import RideRequestsScreen from '../rideRequests/rideRequestsScreen';
 import MyStatusBar from '../../components/myStatusBar';
 import { useLocation } from '../../hooks/useLocation';
 import firestore from '@react-native-firebase/firestore';
+import { AuthContext } from '../../context/AuthContext';
 
 const HomeScreen = ({navigation}) => {
 
   const [pedidos, setPedidos] = useState([])
+  const [backClickCount, setBackClickCount] = useState(0);
+  const [showMenu, setShowMenu] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
+  const { user } = useContext(AuthContext)
   const { hasLocation, initialPosition, getCurrentLocation, address } = useLocation();
   const mapViewRef = useRef();
 
@@ -60,6 +65,48 @@ const HomeScreen = ({navigation}) => {
     return () => subscriber();
   }, []);
 
+  const updateStatusDriver = () => {
+    // Obtiene una referencia a la colección
+    const coleccion = firestore().collection('distribuidores');
+    // Realiza la consulta para buscar documentos que coincidan con el campo y valor especificados
+    coleccion.where('id', '==', user.id).get()
+      .then((querySnapshot) => {
+        if (!querySnapshot.empty) {
+          querySnapshot.forEach((doc) => {
+            // doc.data() contiene los datos del documento encontrado
+            console.log(doc.data())
+            console.log('ID del documento:', doc.id, 'Datos:', doc.data());
+            if (doc.data()) {
+              const documentoRef = firestore().collection('distribuidores').doc(doc.id);
+              // Crea un objeto GeoPoint con latitud y longitud
+              const geoPoint = new firestore.GeoPoint(initialPosition.latitude, initialPosition.longitude);
+              // Actualiza los datos del documento
+              documentoRef.update({
+                isActivo: !isOnline,
+                coordinate: geoPoint
+              })
+            }
+          });
+        }else{
+          // Obtiene una referencia a la colección
+          const coleccion = firestore().collection('distribuidores');
+          // Crea un objeto GeoPoint con latitud y longitud
+          const geoPoint = new firestore.GeoPoint(initialPosition.latitude, initialPosition.longitude);
+          // Añade un nuevo documento con datos
+          coleccion.add({
+            id: user.id,
+            name: user.name,
+            coordinate: geoPoint,
+            isActivo: !isOnline
+          })
+        }
+      })
+      .catch((error) => {
+        console.error('Error al buscar documentos:', error);
+      });
+   
+  };
+
   const backAction = () => {
     backClickCount == 1 ? BackHandler.exitApp() : _spring();
     return true;
@@ -80,9 +127,7 @@ const HomeScreen = ({navigation}) => {
     }, 1000);
   }
 
-  const [backClickCount, setBackClickCount] = useState(0);
-  const [showMenu, setShowMenu] = useState(false);
-  const [isOnline, setIsOnline] = useState(false);
+ 
 
   return (
     <View style={{flex: 1, backgroundColor: Colors.whiteColor}}>
@@ -192,7 +237,7 @@ const HomeScreen = ({navigation}) => {
                 activeOpacity={0.8}
                 onPress={() => {
                   console.log('Cambiar estado activo: Estado: ' + !isOnline)
-                  
+                  updateStatusDriver();
                   setIsOnline(!isOnline);
                   setShowMenu(false);
                 }}
