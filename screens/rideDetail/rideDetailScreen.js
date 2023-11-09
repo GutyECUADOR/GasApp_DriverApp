@@ -222,7 +222,7 @@ const RideDetailScreen = ({navigation}) => {
             textAlign: 'center',
             ...Fonts.blackColor17SemiBold,
           }}>
-          Tynisha Obey
+          Tynisha Obey DetailScreen
         </Text>
         <View
           style={{

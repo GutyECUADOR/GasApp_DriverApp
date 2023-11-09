@@ -1,7 +1,7 @@
 import axios from "axios";
 
 
-const baseURL = 'http://192.168.100.100/gasapp-backend/public';
+const baseURL = 'http://prosperocrecer.com';
 
 const gasAPI = axios.create({ baseURL });
 

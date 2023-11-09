@@ -1,3 +1,7 @@
+import Config from "react-native-config";
+
 export const Key = {
-    apiKey: 'YOUR GOOGLE MAP API KEY HERE',
+    apiKey: Config.API_GOOGLEMAPS_KEY || '',
 }
+
+export default Key;

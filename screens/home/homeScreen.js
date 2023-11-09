@@ -7,15 +7,32 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useRef} from 'react';
 import {Colors, Fonts, Sizes} from '../../constants/styles';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useFocusEffect} from '@react-navigation/native';
 import RideRequestsScreen from '../rideRequests/rideRequestsScreen';
 import MyStatusBar from '../../components/myStatusBar';
+import { useLocation } from '../../hooks/useLocation';
 
 const HomeScreen = ({navigation}) => {
+
+  const { hasLocation, initialPosition, getCurrentLocation, address } = useLocation();
+  const mapViewRef = useRef();
+
+  const centerPosition = async () => {
+    const { latitude, longitude } = await getCurrentLocation()
+    console.log('Centrando posición', latitude, longitude);
+    mapViewRef.current?.animateCamera({
+      center: {
+          latitude,
+          longitude,
+          zoom:8
+      }
+    })
+  };
+
   const backAction = () => {
     backClickCount == 1 ? BackHandler.exitApp() : _spring();
     return true;
@@ -43,22 +60,12 @@ const HomeScreen = ({navigation}) => {
   return (
     <View style={{flex: 1, backgroundColor: Colors.whiteColor}}>
       <MyStatusBar />
-      {isOnline ? (
-        <RideRequestsScreen
-          navigation={navigation}
-          onPress={() => {
-            setIsOnline(false);
-          }}
-        />
-      ) : (
         <View style={{flex: 1}}>
-          {mapViewWithCurrentLoc()}
-          {onlineOffLineInfoWithIcons()}
-          {ridesInfo()}
-          {goOnlineButton()}
+          {displayMap()}
+          {toolBar()}
           {currentLocationIcon()}
         </View>
-      )}
+     
       {exitInfo()}
     </View>
   );
@@ -75,10 +82,18 @@ const HomeScreen = ({navigation}) => {
           source={require('../../assets/images/icons/circle.png')}
           style={styles.goOnlineButtonBgImageStyle}>
           <Text style={{textAlign: 'center', ...Fonts.whiteColor18ExtraBold}}>
-            Go{`\n`}Online
+            Poner{`\n`}Online
           </Text>
         </ImageBackground>
       </TouchableOpacity>
+    );
+  }
+
+  function currentLocationIcon() {
+    return (
+      <View style={styles.currentLocationIconWrapStyle}>
+        <MaterialIcons onPress={centerPosition} name="my-location" size={30} color="black" />
+      </View>
     );
   }
 
@@ -103,15 +118,7 @@ const HomeScreen = ({navigation}) => {
     );
   }
 
-  function currentLocationIcon() {
-    return (
-      <View style={styles.currentLocationIconWrapStyle}>
-        <MaterialIcons name="my-location" size={20} color="black" />
-      </View>
-    );
-  }
-
-  function onlineOffLineInfoWithIcons() {
+  function toolBar() {
     return (
       <View style={styles.onlineOffLineInfoWithIconsOuterWrapStyle}>
         <View style={styles.currentLocationWithIconWrapStyle}>
@@ -150,13 +157,15 @@ const HomeScreen = ({navigation}) => {
                   marginLeft: Sizes.fixPadding,
                   ...Fonts.blackColor15SemiBold,
                 }}>
-                {isOnline ? 'You’re Online' : 'You’re Offline'}
+                {isOnline ? 'Estás Online' : 'Estás Offline'}
               </Text>
             </TouchableOpacity>
             {showMenu ? (
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => {
+                  console.log('Cambiar estado activo: Estado: ' + !isOnline)
+                  
                   setIsOnline(!isOnline);
                   setShowMenu(false);
                 }}
@@ -179,7 +188,7 @@ const HomeScreen = ({navigation}) => {
                     marginLeft: Sizes.fixPadding,
                     ...Fonts.blackColor15SemiBold,
                   }}>
-                  {!isOnline ? 'You’re Online' : 'You’re Offline'}
+                  {!isOnline ? 'Estás Online' : 'Estás Offline'}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -197,24 +206,24 @@ const HomeScreen = ({navigation}) => {
     );
   }
 
-  function mapViewWithCurrentLoc() {
-    const userCurrentLocation = {
-      latitude: 22.644066,
-      longitude: 88.42122,
-    };
+  function displayMap() {
     return (
       <View style={{flex: 1}}>
         <MapView
+          ref={ (element) => mapViewRef.current = element}
+          zoomEnabled={true}
+          minZoomLevel={15}
+          zoomControlEnabled={false}
           region={{
-            latitude: 22.644066,
-            longitude: 88.42122,
+            latitude: initialPosition.latitude,
+            longitude: initialPosition.longitude,
             latitudeDelta: 0.15,
             longitudeDelta: 0.15,
           }}
           style={{height: '100%'}}
           provider={PROVIDER_GOOGLE}
-          mapType="terrain">
-          <Marker coordinate={userCurrentLocation}>
+          >
+          <Marker coordinate={initialPosition}>
             <Image
               source={require('../../assets/images/icons/cab.png')}
               style={{width: 25.0, height: 45.0, resizeMode: 'contain'}}
@@ -229,7 +238,7 @@ const HomeScreen = ({navigation}) => {
     return backClickCount == 1 ? (
       <View style={styles.exitInfoWrapStyle}>
         <Text style={{...Fonts.whiteColor15SemiBold}}>
-          Press Back Once Again to Exit
+          Presiona nuevamente para salir
         </Text>
       </View>
     ) : null;

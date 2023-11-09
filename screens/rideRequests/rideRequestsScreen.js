@@ -305,7 +305,7 @@ const RideRequestsScreen = ({navigation, onPress}) => {
             textAlign: 'center',
             ...Fonts.blackColor17SemiBold,
           }}>
-          Tynisha Obey
+          Tynisha Obey OK
         </Text>
         <View
           style={{

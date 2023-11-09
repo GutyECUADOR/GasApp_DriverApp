@@ -85,7 +85,7 @@ const GoToPickupScreen = ({navigation}) => {
           marginBottom: Sizes.fixPadding * 3.0,
         }}>
         <Text style={{textAlign: 'center', ...Fonts.blackColor17SemiBold}}>
-          Tynisha Obey
+          Tynisha Obey GoTo Pickup
         </Text>
         <View
           style={{

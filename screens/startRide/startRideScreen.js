@@ -85,7 +85,7 @@ const StartRideScreen = ({navigation}) => {
           marginBottom: Sizes.fixPadding * 3.0,
         }}>
         <Text style={{textAlign: 'center', ...Fonts.blackColor17SemiBold}}>
-          Tynisha Obey
+          Tynisha Obey RidesScreen
         </Text>
         <View
           style={{
