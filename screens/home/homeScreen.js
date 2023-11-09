@@ -65,7 +65,8 @@ const HomeScreen = ({navigation}) => {
     return () => subscriber();
   }, []);
 
-  const updateStatusDriver = () => {
+  const updateStatusDriver = async () => {
+    const { latitude, longitude } = await getCurrentLocation()
     // Obtiene una referencia a la colección
     const coleccion = firestore().collection('distribuidores');
     // Realiza la consulta para buscar documentos que coincidan con el campo y valor especificados
@@ -79,7 +80,8 @@ const HomeScreen = ({navigation}) => {
             if (doc.data()) {
               const documentoRef = firestore().collection('distribuidores').doc(doc.id);
               // Crea un objeto GeoPoint con latitud y longitud
-              const geoPoint = new firestore.GeoPoint(initialPosition.latitude, initialPosition.longitude);
+             
+              const geoPoint = new firestore.GeoPoint(latitude, longitude);
               // Actualiza los datos del documento
               documentoRef.update({
                 isActivo: !isOnline,
@@ -286,7 +288,8 @@ const HomeScreen = ({navigation}) => {
           zoomEnabled={true}
           minZoomLevel={15}
           zoomControlEnabled={false}
-          region={{
+          showsUserLocation={true}
+          initialRegion={{
             latitude: initialPosition.latitude,
             longitude: initialPosition.longitude,
             latitudeDelta: 0.15,
