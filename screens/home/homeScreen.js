@@ -354,7 +354,7 @@ const HomeScreen = ({navigation}) => {
           ref={ (element) => mapViewRef.current = element}
           zoomEnabled={true}
           minZoomLevel={15}
-          zoomControlEnabled={false}
+          zoomControlEnabled={true}
           showsUserLocation={true}
           initialRegion={{
             latitude: initialPosition.latitude,
@@ -365,7 +365,7 @@ const HomeScreen = ({navigation}) => {
           style={{height: '100%'}}
           provider={PROVIDER_GOOGLE}
           >
-          <Marker coordinate={initialPosition}>
+          <Marker coordinate={userLocation}>
             <Image
               source={require('../../assets/images/icons/cab.png')}
               style={{width: 25.0, height: 45.0, resizeMode: 'contain'}}
