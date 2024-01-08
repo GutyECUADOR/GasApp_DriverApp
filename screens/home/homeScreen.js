@@ -47,11 +47,12 @@ const HomeScreen = ({navigation}) => {
       const markers = [];
 
       querySnapshot.forEach(documentSnapshot => {
+        
         markers.push({
           id: documentSnapshot.id,
           coordinate: {
-            latitude: documentSnapshot.get('coordinate').latitude,
-            longitude: documentSnapshot.get('coordinate').longitude,
+            latitude: documentSnapshot.get('client').coordinate.latitude,
+            longitude: documentSnapshot.get('client').coordinate.longitude,
           },
         });
       });
@@ -353,7 +354,7 @@ const HomeScreen = ({navigation}) => {
         <MapView
           ref={ (element) => mapViewRef.current = element}
           zoomEnabled={true}
-          minZoomLevel={15}
+          minZoomLevel={13}
           zoomControlEnabled={true}
           showsUserLocation={true}
           initialRegion={{
@@ -363,8 +364,21 @@ const HomeScreen = ({navigation}) => {
             longitudeDelta: 0.15,
           }}
           style={{height: '100%'}}
-          provider={PROVIDER_GOOGLE}
-          >
+          provider={PROVIDER_GOOGLE}>
+          {pedidos.map((item, index) => (
+            <Marker key={`${index}`} coordinate={ item.coordinate }
+              title='Pedido de Gas'
+              description='Hay un pedido pendiente en este sector'
+              >
+              <Image
+                source={require('../../assets/images/icons/marker2.png')}
+                style={{
+                  
+                  resizeMode: 'contain'
+                }}
+              />
+            </Marker>
+          ))}
           <Marker coordinate={userLocation}>
             <Image
               source={require('../../assets/images/icons/cab.png')}
