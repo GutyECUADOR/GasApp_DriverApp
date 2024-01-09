@@ -15,30 +15,11 @@ import MyStatusBar from '../../components/myStatusBar';
 const userRidesList = [
   {
     id: '1',
-    passengerName: 'Tynisha Obey',
+    passengerName: 'Usuario de pruebas',
     date: 'Today',
-    time: '01:17 pm',
-    amount: 30.5,
-    pickupAddress: '9 Bailey Drive, Fredericton, NB E3B 5A3',
-    dropAddress: '1655 Island Pkwy, Kamloops, BC V2B 6Y9',
-  },
-  {
-    id: '2',
-    passengerName: 'Leslie Alexander',
-    date: 'Fri 05 Jun, 2020',
-    time: '06:31 am',
-    amount: 25.5,
-    pickupAddress: '38 Whiteshell Avenue, Winnipeg, MB R2C',
-    dropAddress: '225 Belleville St, Victoria, BC V8V 1X1',
-  },
-  {
-    id: '3',
-    passengerName: 'Esther Howard',
-    date: 'Thu 04 Jun, 2020',
-    time: '07:00 am',
-    amount: 35.5,
-    pickupAddress: '6387 Arad Street, Niagara Falls, ON L2G 2Z7',
-    dropAddress: '225 Belleville St, Victoria, BC V8V 1X1',
+    time: '01-01-2024',
+    amount: 3.50,
+    pickupAddress: 'Alemania 899 y Mariana de Jesus',
   },
 ];
 
@@ -58,7 +39,7 @@ const UserRidesScreen = ({navigation}) => {
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
-          navigation.push('RideDetail');
+          //navigation.push('RideDetail');
         }}
         style={styles.ridesInfoWrapStyle}>
         <View style={styles.rideTimeAndAmountWrapStyle}>
@@ -115,15 +96,15 @@ const UserRidesScreen = ({navigation}) => {
             {item.pickupAddress}
           </Text>
         </View>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+       {/*  <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <View style={{width: 24.0, alignItems: 'center'}}>
             <Text style={{...Fonts.blackColor8SemiBold, lineHeight: 6}}>
               •{`\n`}•{`\n`}•{`\n`}•{`\n`}•{`\n`}•{`\n`}•
             </Text>
           </View>
           <View style={styles.currentToDropLocationInfoDividerStyle} />
-        </View>
-        <View
+        </View> */}
+        {/* <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -145,7 +126,7 @@ const UserRidesScreen = ({navigation}) => {
             }}>
             {item.dropAddress}
           </Text>
-        </View>
+        </View> */}
       </TouchableOpacity>
     );
     return (
@@ -177,7 +158,7 @@ const UserRidesScreen = ({navigation}) => {
             marginLeft: Sizes.fixPadding + 2.0,
             ...Fonts.blackColor20ExtraBold,
           }}>
-          My Rides
+          Mis pedidos realizados
         </Text>
       </View>
     );

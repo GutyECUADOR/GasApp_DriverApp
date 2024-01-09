@@ -6,17 +6,21 @@ import {
   ImageBackground,
   Image,
   TouchableOpacity,
+  ScrollView
 } from 'react-native';
 import React, {useState, useCallback, useRef, useEffect, useContext} from 'react';
-import {Colors, Fonts, Sizes} from '../../constants/styles';
+import {Colors, Fonts, Sizes, screenHeight, screenWidth, commonStyles} from '../../constants/styles';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useFocusEffect} from '@react-navigation/native';
 import RideRequestsScreen from '../rideRequests/rideRequestsScreen';
+import * as Animatable from 'react-native-animatable';
 import MyStatusBar from '../../components/myStatusBar';
 import { useLocation } from '../../hooks/useLocation';
-import firestore from '@react-native-firebase/firestore';
 import { AuthContext } from '../../context/AuthContext';
+
+import firestore from '@react-native-firebase/firestore';
+import { LocationClass, LocationContext } from '../../context/LocationContext';
 
 const HomeScreen = ({navigation}) => {
 
@@ -24,8 +28,11 @@ const HomeScreen = ({navigation}) => {
   const [backClickCount, setBackClickCount] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
+  const [showMore, setshowMore] = useState(false);
   const { user } = useContext(AuthContext)
-  const { hasLocation, initialPosition, userLocation, getCurrentLocation, followUserLocation, address } = useLocation();
+  const { hasLocation, initialPosition, userLocation, followUserLocation, address } = useLocation();
+  const { locationState, setLocation, setDeliveryLocation, getAddress, getCurrentLocation } = useContext(LocationContext);
+  
   const mapViewRef = useRef();
 
   const centerPosition = async () => {
@@ -207,6 +214,7 @@ const HomeScreen = ({navigation}) => {
           {displayMap()}
           {toolBar()}
           {currentLocationIcon()}
+          {requestInfoSheet()}
         </View>
      
       {exitInfo()}
@@ -348,6 +356,166 @@ const HomeScreen = ({navigation}) => {
     );
   }
 
+  function requestInfoSheet() {
+    return (
+      <Animatable.View
+        animation="slideInUp"
+        iterationCount={1}
+        duration={1500}
+        style={{
+          ...styles.bottomSheetWrapStyle
+        }}>
+        {indicator()}
+        <ScrollView
+          contentContainerStyle={{paddingBottom: Sizes.fixPadding * 2.0}}
+          showsVerticalScrollIndicator={false}>
+          {passengerInfo()}
+          {showMore ? (
+            <View>
+              {divider()}
+              {tripInfo()}
+              {divider()}
+              {paymentInfo()}
+              {divider()}
+              {otherInfo()}
+            </View>
+          ) : null}
+        </ScrollView>
+        {acceptRejectAndMoreLessButton()}
+      </Animatable.View>
+    );
+  }
+
+  function passengerInfoSheet() {
+    return (
+      <Animatable.View
+        animation="slideInUp"
+        iterationCount={1}
+        duration={1500}
+        style={{...styles.bottomSheetWrapStyle}}>
+        {indicator()}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {passengerInfo()}
+        </ScrollView>
+        {goToPickupButton()}
+      </Animatable.View>
+    );
+  }
+
+  function indicator() {
+    return <View style={{...styles.sheetIndicatorStyle}} />;
+  }
+
+  function goToPickupButton() {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => {
+          navigation.push('StartRide');
+        }}
+        style={styles.buttonStyle}>
+        <Text style={{...Fonts.whiteColor18Bold}}>Finalizar</Text>
+      </TouchableOpacity>
+    );
+  }
+
+  function acceptRejectAndMoreLessButton() {
+    return (
+      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            //navigation.push('GoToPickup');
+          }}
+          style={styles.buttonStyle}>
+          <Text style={{...Fonts.whiteColor18Bold}}>Aceptar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {}}
+          style={{
+            ...styles.buttonCancelStyle
+          }}>
+          <Text style={{...Fonts.whiteColor18Bold}}>Rechazar</Text>
+        </TouchableOpacity>
+        
+      </View>
+    );
+  }
+
+  function passengerInfo() {
+    return (
+      <View style={{marginTop: Sizes.fixPadding}}>
+        {passengerImageWithCallAndMessage()}
+        {passengerDetail()}
+      </View>
+    );
+  }
+
+  function passengerImageWithCallAndMessage() {
+    return (
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+        <Image
+          source={require('../../assets/images/users/nouser.png')}
+          style={styles.passengerImageStyle}
+        />
+      </View>
+    );
+  }
+
+  function passengerDetail() {
+    return (
+      <View
+        style={{
+          marginTop: Sizes.fixPadding,
+          marginBottom: Sizes.fixPadding * 3.0,
+        }}>
+        <Text style={{textAlign: 'center', ...Fonts.blackColor17SemiBold}}>
+          Usuario
+        </Text>
+        <View
+          style={{
+            marginTop: Sizes.fixPadding,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+          <View
+            style={{
+              maxWidth: screenWidth / 2.5,
+              marginHorizontal: Sizes.fixPadding + 9.0,
+              alignItems: 'center',
+            }}>
+            <Text numberOfLines={1} style={{...Fonts.grayColor14Regular}}>
+              Ride fare
+            </Text>
+            <Text numberOfLines={1} style={{...Fonts.blackColor15SemiBold}}>
+              $22.50
+            </Text>
+          </View>
+          <View
+            style={{
+              maxWidth: screenWidth / 2.5,
+              marginHorizontal: Sizes.fixPadding + 9.0,
+              alignItems: 'center',
+            }}>
+            <Text numberOfLines={1} style={{...Fonts.grayColor14Regular}}>
+              Location distance
+            </Text>
+            <Text numberOfLines={1} style={{...Fonts.blackColor15SemiBold}}>
+              10km
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   function displayMap() {
     return (
       <View style={{flex: 1}}>
@@ -357,9 +525,9 @@ const HomeScreen = ({navigation}) => {
           minZoomLevel={13}
           zoomControlEnabled={true}
           showsUserLocation={true}
-          initialRegion={{
-            latitude: initialPosition.latitude,
-            longitude: initialPosition.longitude,
+          region={{
+            latitude: locationState.location.latitude,
+            longitude: locationState.location.longitude,
             latitudeDelta: 0.15,
             longitudeDelta: 0.15,
           }}
@@ -379,12 +547,12 @@ const HomeScreen = ({navigation}) => {
               />
             </Marker>
           ))}
-          <Marker coordinate={userLocation}>
-            <Image
-              source={require('../../assets/images/icons/cab.png')}
-              style={{width: 25.0, height: 45.0, resizeMode: 'contain'}}
-            />
-          </Marker>
+          <Marker
+            draggable={true}
+            coordinate={locationState.location}
+            title='Tu ubicación actual'
+            description='No es correcta? Activa el GPS'
+          ></Marker>
         </MapView>
       </View>
     );
@@ -472,5 +640,57 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 80.0,
     alignSelf: 'center',
+  },
+  bottomSheetWrapStyle: {
+    borderTopLeftRadius: Sizes.fixPadding * 2.5,
+    borderTopRightRadius: Sizes.fixPadding * 2.5,
+    backgroundColor: Colors.whiteColor,
+    position: 'absolute',
+    left: 0.0,
+    right: 0.0,
+    bottom: 0.0,
+    maxHeight: screenHeight / 2.4,
+  },
+  buttonStyle: {
+    flex: 1,
+    marginTop: Sizes.fixPadding * 3.0,
+    backgroundColor: Colors.primaryColor,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Sizes.fixPadding + 2.0,
+    borderColor: Colors.whiteColor,
+  },
+  buttonCancelStyle: {
+    flex: 1,
+    marginTop: Sizes.fixPadding * 3.0,
+    backgroundColor: Colors.redColor,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Sizes.fixPadding + 2.0,
+    borderColor: Colors.whiteColor,
+  },
+  sheetIndicatorStyle: {
+    width: 50,
+    height: 5.0,
+    backgroundColor: Colors.primaryColor,
+    borderRadius: Sizes.fixPadding,
+    alignSelf: 'center',
+    marginVertical: Sizes.fixPadding * 2.0,
+  },
+  callAndMessageIconWrapStyle: {
+    width: screenWidth / 10.0,
+    height: screenWidth / 10.0,
+    borderRadius: screenWidth / 10.0 / 2.0,
+    backgroundColor: Colors.whiteColor,
+    elevation: 3.0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...commonStyles.shadow
+  },
+  passengerImageStyle: {
+    width: screenWidth / 4.0,
+    height: screenWidth / 4.0,
+    borderRadius: screenWidth / 4.0 / 2.0,
+    marginHorizontal: Sizes.fixPadding * 2.0,
   },
 });
