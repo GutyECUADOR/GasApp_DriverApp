@@ -28,10 +28,12 @@ const HomeScreen = ({navigation}) => {
   const [backClickCount, setBackClickCount] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
+  const [isNuevoPedido, setIsNuevoPedido] = useState(false);
+  const [lastNuevoPedido, setLastNuevoPedido] = useState({});
   const [showMore, setshowMore] = useState(false);
   const { user } = useContext(AuthContext)
-  const { hasLocation, initialPosition, userLocation, followUserLocation, address } = useLocation();
-  const { locationState, setLocation, setDeliveryLocation, getAddress, getCurrentLocation } = useContext(LocationContext);
+  //const { hasLocation, initialPosition, userLocation, followUserLocation, address } = useLocation();
+  const { locationState, setHasPedidoActivo, setLocation, setDeliveryLocation, getAddress, getCurrentLocation, followUserLocation } = useContext(LocationContext);
   
   const mapViewRef = useRef();
 
@@ -50,6 +52,7 @@ const HomeScreen = ({navigation}) => {
   useEffect(() => {
     const subscriber = firestore()
     .collection('pedidos')
+    .limit(20)
     .onSnapshot(querySnapshot => {
       const markers = [];
 
@@ -57,12 +60,22 @@ const HomeScreen = ({navigation}) => {
         
         markers.push({
           id: documentSnapshot.id,
+          address: documentSnapshot.get('client').address,
+          email: documentSnapshot.get('client').email,
+          name: documentSnapshot.get('client').name,
           coordinate: {
             latitude: documentSnapshot.get('client').coordinate.latitude,
             longitude: documentSnapshot.get('client').coordinate.longitude,
           },
         });
+
       });
+
+      if (markers.length > 0) {
+        setIsNuevoPedido(true);
+        setLastNuevoPedido(markers[markers.length-1]); // Get the last    
+        console.log('lastNuevoPedido: ',lastNuevoPedido)
+      }
 
       console.log('Clientes/Pedidos: ', markers);
       setPedidos(markers);
@@ -83,7 +96,7 @@ const HomeScreen = ({navigation}) => {
   }, [])
 
   useEffect(() => {
-    const { latitude, longitude } = userLocation;
+    const { latitude, longitude } = locationState.location;
     mapViewRef.current?.animateCamera({
       center: {
           latitude,
@@ -93,11 +106,11 @@ const HomeScreen = ({navigation}) => {
     })
 
     updateLocationDriver()
-  }, [userLocation])
+  }, [locationState.location])
   
 
   const updateStatusDriver = async () => {
-    const { latitude, longitude } = userLocation;
+    const { latitude, longitude } = locationState.location;
     // Obtiene una referencia a la colección
     const coleccion = firestore().collection('distribuidores');
     // Realiza la consulta para buscar documentos que coincidan con el campo y valor especificados
@@ -143,7 +156,7 @@ const HomeScreen = ({navigation}) => {
       return;
     }
 
-    const { latitude, longitude } = userLocation;
+    const { latitude, longitude } = locationState.location;
     // Obtiene una referencia a la colección
     const coleccion = firestore().collection('distribuidores');
     // Realiza la consulta para buscar documentos que coincidan con el campo y valor especificados
@@ -184,7 +197,29 @@ const HomeScreen = ({navigation}) => {
    
   };
 
-  
+  const updatePedidoDelivery = async (pedidoID) => {
+    const nuevoPedido = await firestore().collection('pedidos').doc(pedidoID).update({
+     delivery: {
+       name: user.name,
+       email: user.email,
+       address: locationState.address,
+       coordinate: new firestore.GeoPoint(locationState.location.latitude, locationState.location.longitude),
+     }
+    }).then(() => {
+      console.log('Pedido updated!');
+    });
+ }
+
+ const finishPedidoDelivery = async () => {
+  await firestore()
+    .collection('pedidos')
+    .doc(locationState.pedidoActivoID)
+    .delete()
+    .then(() => {
+      console.log(`Pedido ${locationState.pedidoActivoID} cancelado`);
+    });
+  }
+
   const backAction = () => {
     backClickCount == 1 ? BackHandler.exitApp() : _spring();
     return true;
@@ -214,7 +249,9 @@ const HomeScreen = ({navigation}) => {
           {displayMap()}
           {toolBar()}
           {currentLocationIcon()}
-          {requestInfoSheet()}
+          { isNuevoPedido && requestInfoSheet()} 
+          { locationState.hasPedidoActivo && passengerInfoSheet()} 
+
         </View>
      
       {exitInfo()}
@@ -411,7 +448,8 @@ const HomeScreen = ({navigation}) => {
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
-          navigation.push('StartRide');
+          setIsNuevoPedido(false);
+          setHasPedidoActivo(false);
         }}
         style={styles.buttonStyle}>
         <Text style={{...Fonts.whiteColor18Bold}}>Finalizar</Text>
@@ -425,14 +463,19 @@ const HomeScreen = ({navigation}) => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            //navigation.push('GoToPickup');
+            setIsNuevoPedido(false);
+            setHasPedidoActivo(true);
+            updatePedidoDelivery(lastNuevoPedido.id);
+            console.log(lastNuevoPedido.id);
           }}
           style={styles.buttonStyle}>
           <Text style={{...Fonts.whiteColor18Bold}}>Aceptar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => {}}
+          onPress={() => {
+            setIsNuevoPedido(false);
+          }}
           style={{
             ...styles.buttonCancelStyle
           }}>
@@ -476,7 +519,7 @@ const HomeScreen = ({navigation}) => {
           marginBottom: Sizes.fixPadding * 3.0,
         }}>
         <Text style={{textAlign: 'center', ...Fonts.blackColor17SemiBold}}>
-          Usuario
+          { lastNuevoPedido?.address }
         </Text>
         <View
           style={{
@@ -485,6 +528,7 @@ const HomeScreen = ({navigation}) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
+        
           <View
             style={{
               maxWidth: screenWidth / 2.5,
@@ -492,23 +536,10 @@ const HomeScreen = ({navigation}) => {
               alignItems: 'center',
             }}>
             <Text numberOfLines={1} style={{...Fonts.grayColor14Regular}}>
-              Ride fare
+              Dirección
             </Text>
-            <Text numberOfLines={1} style={{...Fonts.blackColor15SemiBold}}>
-              $22.50
-            </Text>
-          </View>
-          <View
-            style={{
-              maxWidth: screenWidth / 2.5,
-              marginHorizontal: Sizes.fixPadding + 9.0,
-              alignItems: 'center',
-            }}>
-            <Text numberOfLines={1} style={{...Fonts.grayColor14Regular}}>
-              Location distance
-            </Text>
-            <Text numberOfLines={1} style={{...Fonts.blackColor15SemiBold}}>
-              10km
+            <Text numberOfLines={2} style={{...Fonts.blackColor15SemiBold}}>
+            { lastNuevoPedido?.name }
             </Text>
           </View>
         </View>

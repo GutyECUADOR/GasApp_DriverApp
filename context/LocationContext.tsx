@@ -35,6 +35,7 @@ export interface LocationContextProps {
     locationState: LocationState;
     getCurrentLocation: () => Promise<Location>;
     getAddress: () => Promise<void>;
+    followUserLocation: () => void;
     setLocation: (location: Location) => void;
     setDeliveryLocation: (location: Location) => void;
     setDelivery: (delivery: Delivery | null) => void;
@@ -79,6 +80,25 @@ export const LocationProvider = ({ children }: any) => {
         })
         .catch(error => console.warn(error));
         return address;
+    }
+
+    const followUserLocation = () => {
+        Geolocation.watchPosition(
+          info => {
+            console.log('UserLocation', info.coords);
+            setLocation({
+              latitude: info.coords.latitude,
+              longitude: info.coords.longitude
+            });
+          },
+          error => {
+            console.log(error)
+          },
+          {
+            enableHighAccuracy: true,
+            distanceFilter: 100
+          }
+        );
     }
 
     const setLocation = (location: Location) => {
@@ -132,6 +152,7 @@ export const LocationProvider = ({ children }: any) => {
         <LocationContext.Provider value={{
             locationState,
             setLocation,
+            followUserLocation,
             setDeliveryLocation,
             setDelivery,
             setHasLocation,
