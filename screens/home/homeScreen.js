@@ -108,7 +108,6 @@ const HomeScreen = ({navigation}) => {
     updateLocationDriver()
   }, [locationState.location])
   
-
   const updateStatusDriver = async () => {
     const { latitude, longitude } = locationState.location;
     // Obtiene una referencia a la colección
@@ -134,7 +133,7 @@ const HomeScreen = ({navigation}) => {
           // Obtiene una referencia a la colección
           const coleccion = firestore().collection('distribuidores');
           // Crea un objeto GeoPoint con latitud y longitud
-          const geoPoint = new firestore.GeoPoint(initialPosition.latitude, initialPosition.longitude);
+          const geoPoint = new firestore.GeoPoint(locationState.location.latitude, locationState.location.longitude);
           // Añade un nuevo documento con datos
           coleccion.add({
             id: user.id,

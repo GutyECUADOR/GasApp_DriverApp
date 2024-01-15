@@ -86,7 +86,6 @@ export const Navigator = () => {
                 <Stack.Screen name="GoToPickup" component={GoToPickupScreen} />
                 <Stack.Screen name="StartRide" component={StartRideScreen} />
                 <Stack.Screen name="EndRide" component={EndRideScreen} />
-                <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                 <Stack.Screen name="UserRides" component={UserRidesScreen} />
                 <Stack.Screen name="RideDetail" component={RideDetailScreen} />
                 <Stack.Screen name="UserRatings" component={UserRatingsScreen} />
