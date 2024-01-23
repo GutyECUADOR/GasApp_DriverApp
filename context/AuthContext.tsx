@@ -126,14 +126,29 @@ export const AuthProvider = ({ children }:any) => {
             console.log(data);
 
         } catch (error: any) {
-            console.log(error.response.data);
+            console.log('Errors API:', error.response.data);
+            const fisrtError = obtenerListaDeErrores(error.response.data);
             dispatch({ 
                 type: 'addRegisterError', 
-                payload: error.response.data.message || 'Información incorrecta'
+                payload: fisrtError || 'Información incorrecta'
             });
         }
 
     };
+
+    function obtenerListaDeErrores (jsonResponse: any) {
+        var listaErrores: any = [];
+      
+        // Iterar sobre los errores en el objeto 'errors'
+        for (var campo in jsonResponse.errors) {
+          if (jsonResponse.errors.hasOwnProperty(campo)) {
+            // Agregar cada mensaje de error a la lista
+            listaErrores = listaErrores.concat(jsonResponse.errors[campo]);
+          }
+        }
+      
+        return listaErrores[0];
+    }
 
     const logOut = async() => {
         await AsyncStorage.removeItem('token');
