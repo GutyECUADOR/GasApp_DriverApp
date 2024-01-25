@@ -49,42 +49,48 @@ const HomeScreen = ({navigation}) => {
     })
   };
 
+  // Watch pedidos pendientes de Firestore
   useEffect(() => {
-    const subscriber = firestore()
-    .collection('pedidos')
-    .limit(20)
-    .onSnapshot(querySnapshot => {
-      const markers = [];
-
-      querySnapshot.forEach(documentSnapshot => {
-        
-        markers.push({
-          id: documentSnapshot.id,
-          address: documentSnapshot.get('client').address,
-          email: documentSnapshot.get('client').email,
-          name: documentSnapshot.get('client').name,
-          coordinate: {
-            latitude: documentSnapshot.get('client').coordinate.latitude,
-            longitude: documentSnapshot.get('client').coordinate.longitude,
-          },
+    if (isOnline) {
+      const subscriber = firestore()
+      .collection('pedidos')
+      .where('status', '==', 'Pendiente')
+      .limit(20)
+      .onSnapshot(querySnapshot => {
+        const markers = [];
+  
+        querySnapshot.forEach(documentSnapshot => {
+          
+          markers.push({
+            id: documentSnapshot.id,
+            address: documentSnapshot.get('client').address,
+            email: documentSnapshot.get('client').email,
+            name: documentSnapshot.get('client').name,
+            coordinate: {
+              latitude: documentSnapshot.get('client').coordinate.latitude,
+              longitude: documentSnapshot.get('client').coordinate.longitude,
+            },
+          });
+  
         });
-
+  
+        if (markers.length > 0) {
+          setIsNuevoPedido(true);
+          setLastNuevoPedido(markers[markers.length-1]); // Get the last    
+          console.log('lastNuevoPedido: ',lastNuevoPedido)
+        }
+  
+        console.log('Clientes/Pedidos: ', markers);
+        setPedidos(markers);
+       
       });
+    
+      // Unsubscribe from events when no longer in use
+      return () => subscriber();
+    }
 
-      if (markers.length > 0) {
-        setIsNuevoPedido(true);
-        setLastNuevoPedido(markers[markers.length-1]); // Get the last    
-        console.log('lastNuevoPedido: ',lastNuevoPedido)
-      }
 
-      console.log('Clientes/Pedidos: ', markers);
-      setPedidos(markers);
-     
-    });
-
-    // Unsubscribe from events when no longer in use
-    return () => subscriber();
-  }, []);
+  }, [isOnline]);
 
   useEffect(() => {
     centerPosition()
@@ -198,16 +204,25 @@ const HomeScreen = ({navigation}) => {
 
   const updatePedidoDelivery = async (pedidoID) => {
     const nuevoPedido = await firestore().collection('pedidos').doc(pedidoID).update({
-     delivery: {
-       name: user.name,
-       email: user.email,
-       address: locationState.address,
-       coordinate: new firestore.GeoPoint(locationState.location.latitude, locationState.location.longitude),
-     }
+      status: 'En Proceso',
+      delivery: {
+        name: user.name,
+        email: user.email,
+        address: locationState.address,
+        coordinate: new firestore.GeoPoint(locationState.location.latitude, locationState.location.longitude),
+      }
     }).then(() => {
       console.log('Pedido updated!');
     });
- }
+  }
+
+  const finalizarPedidoDelivery = async (pedidoID) => {
+    const nuevoPedido = await firestore().collection('pedidos').doc(pedidoID).update({
+      status: 'Finalizado'
+    }).then(() => {
+      console.log('Pedido finalizado!');
+    });
+  }
 
  const finishPedidoDelivery = async () => {
   await firestore()
@@ -449,6 +464,7 @@ const HomeScreen = ({navigation}) => {
         onPress={() => {
           setIsNuevoPedido(false);
           setHasPedidoActivo(false);
+          finalizarPedidoDelivery(lastNuevoPedido.id);
         }}
         style={styles.buttonStyle}>
         <Text style={{...Fonts.whiteColor18Bold}}>Finalizar</Text>
