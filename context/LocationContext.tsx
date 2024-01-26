@@ -85,7 +85,6 @@ export const LocationProvider = ({ children }: any) => {
     const followUserLocation = () => {
         Geolocation.watchPosition(
           info => {
-            console.log('UserLocation', info.coords);
             setLocation({
               latitude: info.coords.latitude,
               longitude: info.coords.longitude

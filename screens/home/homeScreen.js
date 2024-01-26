@@ -58,7 +58,6 @@ const HomeScreen = ({navigation}) => {
 
   const centerPosition = async () => {
     const { latitude, longitude } = await getCurrentLocation()
-    console.log('Centrando posición', latitude, longitude);
     mapViewRef.current?.animateCamera({
       center: {
           latitude,
@@ -87,10 +86,10 @@ const HomeScreen = ({navigation}) => {
       .where('status', '==', 'Pendiente')
       .limit(20)
       .onSnapshot(querySnapshot => {
-        const pedidos = [];
+        const pedidosArray = [];
   
         querySnapshot.forEach(documentSnapshot => {
-          pedidos.push({
+          pedidosArray.push({
             id: documentSnapshot.id,
             date: documentSnapshot.get('date'),
             address: documentSnapshot.get('client').address,
@@ -105,29 +104,11 @@ const HomeScreen = ({navigation}) => {
         });
 
         // Orden - Más nuevo al final
-        const pedidosOrdenadosByFecha = pedidos.sort(
+        const pedidosOrdenadosByFecha = pedidosArray.sort(
           (objA, objB) => Number(objA.date) - Number(objB.date),
         );
         setPedidos(pedidosOrdenadosByFecha);
-
-        // Agregar el ultimo como nuevo pedido
-        /* console.log("lastNuevoPedido", lastNuevoPedido)
-        let pedidoAunActivo = pedidos.find(pedido => pedido.id === lastNuevoPedido.id);
-        console.log('pedidoAunActivo', pedidoAunActivo); */
-        
-  
-        if (pedidos.length > 0) {
-          setIsNuevoPedido(true);
-          setLastNuevoPedido(pedidos[pedidos.length-1]); // Get the last    
-          console.log('lastNuevoPedido: ',lastNuevoPedido)
-        }else{
-          setIsNuevoPedido(false);
-          setLastNuevoPedido({});
-        }
-  
-        console.log('Pedidos: ', pedidosOrdenadosByFecha);
-       
-       
+        console.log(pedidosOrdenadosByFecha);
       });
     
       // Unsubscribe from events when no longer in use
@@ -135,28 +116,36 @@ const HomeScreen = ({navigation}) => {
     
 
 
-  }, []);
+  }, [isOnline]);
 
-  function ordenarPorTimestamp(array) {
-    // Utiliza el método sort() para ordenar el array en función del valor de timestamp
-    array.sort((a, b) => {
-        // Convierte los timestamps a números enteros para garantizar una comparación numérica adecuada
-        const timestampA = parseInt(a.timestamp);
-        const timestampB = parseInt(b.timestamp);
+  // Verificar si el pedido aun existe y mostrar sheet
+  useEffect(() => {
+
+    if (isOnline === false) {
+      setIsNuevoPedido(false);
+      setLastNuevoPedido({});
+      return;
+    }
+
+    //Consultar si aun existe el pedido en lista // -1 si no encuentra
+    let pedidoAunActivoIndex = pedidos.findIndex(pedido => pedido.id === lastNuevoPedido.id);
         
-        // Compara los timestamps y devuelve el resultado de la comparación
-        if (timestampA < timestampB) {
-            return -1;
-        }
-        if (timestampA > timestampB) {
-            return 1;
-        }
-        return 0;
-    });
+    if (pedidoAunActivoIndex >= 0) {
+      setIsNuevoPedido(true);
+      setLastNuevoPedido(pedidos[pedidoAunActivoIndex]); 
+    }else if(pedidos.length > 0){
+      setIsNuevoPedido(true);
+      setLastNuevoPedido(pedidos[pedidos.length-1]); // Get the last   
+    }else{
+      setIsNuevoPedido(false);
+      setLastNuevoPedido({});
+    }
+   
 
-    return array;
-}
+  }, [pedidos, isOnline])
+  
 
+  
   //Watch del nuevo pedido - isNuevoPedido
   useEffect(() => {
 
@@ -212,6 +201,8 @@ const HomeScreen = ({navigation}) => {
 
     updateLocationDriver()
   }, [locationState.location])
+
+
   
   // Crea y actualiza el status del conductor en Firestore
   const updateStatusDriver = async () => {
@@ -221,7 +212,6 @@ const HomeScreen = ({navigation}) => {
       .then((querySnapshot) => {
         if (!querySnapshot.empty) {
           querySnapshot.forEach((doc) => {
-            console.log('ID del documento:', doc.id, 'Datos:', doc.data());
             if (doc.data()) {
               const documentoRef = firestore().collection('distribuidores').doc(doc.id);
               documentoRef.update({
@@ -261,8 +251,6 @@ const HomeScreen = ({navigation}) => {
         if (!querySnapshot.empty) {
           querySnapshot.forEach((doc) => {
             // doc.data() contiene los datos del documento encontrado
-            console.log(doc.data())
-            console.log('ID del documento:', doc.id, 'Datos:', doc.data());
             if (doc.data()) {
               const documentoRef = firestore().collection('distribuidores').doc(doc.id);
               // Crea un objeto GeoPoint con latitud y longitud
@@ -438,7 +426,6 @@ const HomeScreen = ({navigation}) => {
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={async () => {
-                  console.log('Cambiar estado activo a: ' + !isOnline)
                   await setIsOnline(!isOnline);
                   setShowMenu(false);
                 }}
@@ -559,6 +546,7 @@ const HomeScreen = ({navigation}) => {
           activeOpacity={0.8}
           onPress={() => {
             setIsNuevoPedido(false);
+            setLastNuevoPedido({});
           }}
           style={{
             ...styles.buttonCancelStyle
@@ -590,8 +578,7 @@ const HomeScreen = ({navigation}) => {
     return (
       <View
         style={{
-          marginTop: Sizes.fixPadding,
-          marginBottom: Sizes.fixPadding * 3.0,
+          marginTop: Sizes.fixPadding
         }}>
         <Text style={{textAlign: 'center', ...Fonts.blackColor17SemiBold}}>
           { lastNuevoPedido?.address }

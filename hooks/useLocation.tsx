@@ -38,7 +38,6 @@ export const useLocation = () => {
     const followUserLocation = () => {
       Geolocation.watchPosition(
         info => {
-          console.log('UserLocation', info.coords);
           setUserLocation({
             latitude: info.coords.latitude,
             longitude: info.coords.longitude
@@ -60,7 +59,6 @@ export const useLocation = () => {
         setInitialPosition(location);
         setUserLocation(location);
         sethasLocation(true);
-        console.log(location);
 
         // Search by geo-location (reverse geo-code)
         Geocoder.from(location)
