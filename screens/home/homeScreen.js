@@ -474,6 +474,7 @@ const HomeScreen = ({navigation}) => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
+            setIsOnline(true);
             setIsNuevoPedido(false);
             setHasPedidoActivo(true);
             updatePedidoDelivery(lastNuevoPedido.id);
