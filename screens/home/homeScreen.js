@@ -47,7 +47,7 @@ const HomeScreen = ({navigation}) => {
   const [backClickCount, setBackClickCount] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
-  const [isNuevoPedido, setIsNuevoPedido] = useState(false);
+  const [isNuevoPedido, setIsNuevoPedido] = useState(false);  // Flag para mostrar Sheet del pedido
   const [lastNuevoPedido, setLastNuevoPedido] = useState({});
   const [showMore, setshowMore] = useState(false);
   const { user } = useContext(AuthContext)
@@ -76,23 +76,21 @@ const HomeScreen = ({navigation}) => {
    return () =>{
     // TODO : Cancelar seguimiento al salir de la app
    }
-  }, [])
+  }, [isOnline])
 
 
   // Watch pedidos pendientes de Firestore
   useEffect(() => {
-    updateStatusDriver();
-    if (isOnline) {
+    
       const subscriber = firestore()
       .collection('pedidos')
       .where('status', '==', 'Pendiente')
       .limit(20)
       .onSnapshot(querySnapshot => {
-        const markers = [];
+        const pedidos = [];
   
         querySnapshot.forEach(documentSnapshot => {
-          
-          markers.push({
+          pedidos.push({
             id: documentSnapshot.id,
             address: documentSnapshot.get('client').address,
             email: documentSnapshot.get('client').email,
@@ -104,26 +102,78 @@ const HomeScreen = ({navigation}) => {
           });
   
         });
+
+        // Agregar el ultimo como nuevo pedido
+        /* console.log("lastNuevoPedido", lastNuevoPedido)
+        let pedidoAunActivo = pedidos.find(pedido => pedido.id === lastNuevoPedido.id);
+        console.log('pedidoAunActivo', pedidoAunActivo); */
+        
   
-        if (markers.length > 0) {
+        if (pedidos.length > 0) {
           setIsNuevoPedido(true);
-          setLastNuevoPedido(markers[markers.length-1]); // Get the last    
+          setLastNuevoPedido(pedidos[pedidos.length-1]); // Get the last    
           console.log('lastNuevoPedido: ',lastNuevoPedido)
+        }else{
+          setIsNuevoPedido(false);
+          setLastNuevoPedido({});
         }
   
-        console.log('Clientes/Pedidos: ', markers);
-        setPedidos(markers);
+        console.log('Pedidos: ', pedidos);
+        setPedidos(pedidos);
        
       });
     
       // Unsubscribe from events when no longer in use
       return () => subscriber();
+    
+
+
+  }, []);
+
+
+  //Watch del nuevo pedido - isNuevoPedido
+  useEffect(() => {
+
+    if (locationState.pedidoActivoID == null) {
+      return;
     }
 
+    const subscriber = firestore()
+      .collection('pedidos')
+      .doc(locationState.pedidoActivoID)
+      .onSnapshot(documentSnapshot => {
+        if (documentSnapshot.exists) {
+          const statusDelivery = documentSnapshot.get('status');
+          console.log('User data: ', statusDelivery);
 
-  }, [isOnline]);
+          switch (statusDelivery) {
+            case 'En Proceso':
+              const delivery = documentSnapshot.get('delivery');
+              setDelivery({
+                coordinate: {
+                  latitude: delivery.coordinate.latitude,
+                  longitude: delivery.coordinate.longitude
+                },
+                name: delivery.name,
+                email: delivery.email,
+                phone: delivery.phone
+              });
+              setpedidoStep(appState.DeliveryIniciado);
+              break;
 
+            case 'Finalizado':
+              finalizarPedidoDelivery();
+              break;
+          
+            default:
+              break;
+          }
+        }
+      });
   
+    return () => subscriber();
+  }, [locationState.pedidoActivoID])
+
   useEffect(() => {
     const { latitude, longitude } = locationState.location;
     mapViewRef.current?.animateCamera({
@@ -413,23 +463,19 @@ const HomeScreen = ({navigation}) => {
           ...styles.bottomSheetWrapStyle
         }}>
         {indicator()}
-        <ScrollView
-          contentContainerStyle={{paddingBottom: Sizes.fixPadding * 2.0}}
-          showsVerticalScrollIndicator={false}>
-          {passengerInfo()}
-          {showMore ? (
-            <View>
-              {divider()}
-              {tripInfo()}
-              {divider()}
-              {paymentInfo()}
-              {divider()}
-              {otherInfo()}
-            </View>
-          ) : null}
-        </ScrollView>
+        {passengerInfo()}
         {acceptRejectAndMoreLessButton()}
       </Animatable.View>
+    );
+  }
+
+
+  function passengerInfo() {
+    return (
+      <View style={{marginTop: Sizes.fixPadding}}>
+        {passengerImageWithCallAndMessage()}
+        {passengerDetail()}
+      </View>
     );
   }
 
@@ -498,15 +544,6 @@ const HomeScreen = ({navigation}) => {
     );
   }
 
-  function passengerInfo() {
-    return (
-      <View style={{marginTop: Sizes.fixPadding}}>
-        {passengerImageWithCallAndMessage()}
-        {passengerDetail()}
-      </View>
-    );
-  }
-
   function passengerImageWithCallAndMessage() {
     return (
       <View
@@ -535,7 +572,6 @@ const HomeScreen = ({navigation}) => {
         </Text>
         <View
           style={{
-            marginTop: Sizes.fixPadding,
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
@@ -543,15 +579,18 @@ const HomeScreen = ({navigation}) => {
         
           <View
             style={{
-              maxWidth: screenWidth / 2.5,
+              maxWidth: screenWidth / 1.5,
               marginHorizontal: Sizes.fixPadding + 9.0,
               alignItems: 'center',
             }}>
             <Text numberOfLines={1} style={{...Fonts.grayColor14Regular}}>
               Dirección
             </Text>
-            <Text numberOfLines={2} style={{...Fonts.blackColor15SemiBold}}>
+            <Text numberOfLines={1} style={{...Fonts.blackColor15SemiBold}}>
             { lastNuevoPedido?.name }
+            </Text>
+            <Text numberOfLines={1} style={{...Fonts.blackColor15SemiBold}}>
+            ID: { lastNuevoPedido?.id }
             </Text>
           </View>
         </View>
@@ -706,7 +745,7 @@ const styles = StyleSheet.create({
   buttonCancelStyle: {
     flex: 1,
     marginTop: Sizes.fixPadding * 3.0,
-    backgroundColor: Colors.redColor,
+    backgroundColor: Colors.redDark,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Sizes.fixPadding + 2.0,

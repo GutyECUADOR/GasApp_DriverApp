@@ -10,6 +10,7 @@ export const Colors = {
   lightBlackColor: '#3F3D56',
   orangeColor: '#FFAC33',
   redColor: '#FF0000',
+  redDark: '#910A0A',
 };
 
 export const Sizes = {
