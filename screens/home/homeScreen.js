@@ -92,6 +92,7 @@ const HomeScreen = ({navigation}) => {
         querySnapshot.forEach(documentSnapshot => {
           pedidos.push({
             id: documentSnapshot.id,
+            date: documentSnapshot.get('date'),
             address: documentSnapshot.get('client').address,
             email: documentSnapshot.get('client').email,
             name: documentSnapshot.get('client').name,
@@ -100,8 +101,14 @@ const HomeScreen = ({navigation}) => {
               longitude: documentSnapshot.get('client').coordinate.longitude,
             },
           });
-  
+
         });
+
+        // Orden - Más nuevo al final
+        const pedidosOrdenadosByFecha = pedidos.sort(
+          (objA, objB) => Number(objA.date) - Number(objB.date),
+        );
+        setPedidos(pedidosOrdenadosByFecha);
 
         // Agregar el ultimo como nuevo pedido
         /* console.log("lastNuevoPedido", lastNuevoPedido)
@@ -118,8 +125,8 @@ const HomeScreen = ({navigation}) => {
           setLastNuevoPedido({});
         }
   
-        console.log('Pedidos: ', pedidos);
-        setPedidos(pedidos);
+        console.log('Pedidos: ', pedidosOrdenadosByFecha);
+       
        
       });
     
@@ -130,6 +137,25 @@ const HomeScreen = ({navigation}) => {
 
   }, []);
 
+  function ordenarPorTimestamp(array) {
+    // Utiliza el método sort() para ordenar el array en función del valor de timestamp
+    array.sort((a, b) => {
+        // Convierte los timestamps a números enteros para garantizar una comparación numérica adecuada
+        const timestampA = parseInt(a.timestamp);
+        const timestampB = parseInt(b.timestamp);
+        
+        // Compara los timestamps y devuelve el resultado de la comparación
+        if (timestampA < timestampB) {
+            return -1;
+        }
+        if (timestampA > timestampB) {
+            return 1;
+        }
+        return 0;
+    });
+
+    return array;
+}
 
   //Watch del nuevo pedido - isNuevoPedido
   useEffect(() => {
