@@ -13,16 +13,35 @@ import {Colors, Fonts, Sizes, screenHeight, screenWidth, commonStyles} from '../
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useFocusEffect} from '@react-navigation/native';
-import RideRequestsScreen from '../rideRequests/rideRequestsScreen';
 import * as Animatable from 'react-native-animatable';
 import MyStatusBar from '../../components/myStatusBar';
-import { useLocation } from '../../hooks/useLocation';
 import { AuthContext } from '../../context/AuthContext';
 
 import firestore from '@react-native-firebase/firestore';
-import { LocationClass, LocationContext } from '../../context/LocationContext';
+import { LocationContext } from '../../context/LocationContext';
 
 const HomeScreen = ({navigation}) => {
+
+  // Constantes
+  // Verificar Métodos de pago segun DB
+  const paymentmethods = [
+    {
+      id: '1',
+      paymentType: 'cash',
+      paymentMethod: 'Efectivo',
+    },
+    {
+      id: '2',
+      paymentType: 'other',
+      paymentMethod: 'Transferencia Bancaria',
+    },
+  ];
+
+  const appState = {
+    SinPedido: 'SinPedido',
+    DeliveryIniciado: 'DeliveryIniciado',
+    DeliveryFinalizado: 'DeliveryFinalizado'
+  };
 
   const [pedidos, setPedidos] = useState([])
   const [backClickCount, setBackClickCount] = useState(0);
@@ -32,7 +51,7 @@ const HomeScreen = ({navigation}) => {
   const [lastNuevoPedido, setLastNuevoPedido] = useState({});
   const [showMore, setshowMore] = useState(false);
   const { user } = useContext(AuthContext)
-  //const { hasLocation, initialPosition, userLocation, followUserLocation, address } = useLocation();
+
   const { locationState, setHasPedidoActivo, setLocation, setDeliveryLocation, getAddress, getCurrentLocation, followUserLocation } = useContext(LocationContext);
   
   const mapViewRef = useRef();
@@ -49,8 +68,20 @@ const HomeScreen = ({navigation}) => {
     })
   };
 
+  // Iniciar en posicion iniciar y seguir ubicacion
+  useEffect(() => {
+    updateStatusDriver();
+    centerPosition()
+    followUserLocation();
+   return () =>{
+    // TODO : Cancelar seguimiento al salir de la app
+   }
+  }, [])
+
+
   // Watch pedidos pendientes de Firestore
   useEffect(() => {
+    updateStatusDriver();
     if (isOnline) {
       const subscriber = firestore()
       .collection('pedidos')
@@ -92,15 +123,7 @@ const HomeScreen = ({navigation}) => {
 
   }, [isOnline]);
 
-  useEffect(() => {
-    centerPosition()
-    updateStatusDriver();
-    followUserLocation();
-   return () =>{
-    // TODO : Cancelar seguimiento al salir de la app
-   }
-  }, [])
-
+  
   useEffect(() => {
     const { latitude, longitude } = locationState.location;
     mapViewRef.current?.animateCamera({
@@ -114,33 +137,25 @@ const HomeScreen = ({navigation}) => {
     updateLocationDriver()
   }, [locationState.location])
   
+  // Crea y actualiza el status del conductor en Firestore
   const updateStatusDriver = async () => {
     const { latitude, longitude } = locationState.location;
-    // Obtiene una referencia a la colección
     const coleccion = firestore().collection('distribuidores');
-    // Realiza la consulta para buscar documentos que coincidan con el campo y valor especificados
     coleccion.where('id', '==', user.id).get()
       .then((querySnapshot) => {
         if (!querySnapshot.empty) {
           querySnapshot.forEach((doc) => {
-            // doc.data() contiene los datos del documento encontrado
-            console.log(doc.data())
             console.log('ID del documento:', doc.id, 'Datos:', doc.data());
             if (doc.data()) {
               const documentoRef = firestore().collection('distribuidores').doc(doc.id);
-              // Actualiza los datos del documento
               documentoRef.update({
-                isActivo: !isOnline
-              })
-              setIsOnline(!isOnline);
+                isActivo: isOnline
+              });
             }
           });
         }else{
-          // Obtiene una referencia a la colección
           const coleccion = firestore().collection('distribuidores');
-          // Crea un objeto GeoPoint con latitud y longitud
           const geoPoint = new firestore.GeoPoint(locationState.location.latitude, locationState.location.longitude);
-          // Añade un nuevo documento con datos
           coleccion.add({
             id: user.id,
             name: user.name,
@@ -272,25 +287,6 @@ const HomeScreen = ({navigation}) => {
     </View>
   );
 
-  function goOnlineButton() {
-    return isOnline ? null : (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => {
-          setIsOnline(true);
-          setShowMenu(false);
-        }}>
-        <ImageBackground
-          source={require('../../assets/images/icons/circle.png')}
-          style={styles.goOnlineButtonBgImageStyle}>
-          <Text style={{textAlign: 'center', ...Fonts.whiteColor18ExtraBold}}>
-            Poner{`\n`}Online
-          </Text>
-        </ImageBackground>
-      </TouchableOpacity>
-    );
-  }
-
   function currentLocationIcon() {
     return (
       <View style={styles.currentLocationIconWrapStyle}>
@@ -365,9 +361,9 @@ const HomeScreen = ({navigation}) => {
             {showMenu ? (
               <TouchableOpacity
                 activeOpacity={0.8}
-                onPress={() => {
-                  console.log('Cambiar estado activo: Estado: ' + !isOnline)
-                  updateStatusDriver();
+                onPress={async () => {
+                  console.log('Cambiar estado activo a: ' + !isOnline)
+                  await setIsOnline(!isOnline);
                   setShowMenu(false);
                 }}
                 style={{
@@ -389,7 +385,7 @@ const HomeScreen = ({navigation}) => {
                     marginLeft: Sizes.fixPadding,
                     ...Fonts.blackColor15SemiBold,
                   }}>
-                  {!isOnline ? 'Estás Online' : 'Estás Offline'}
+                  {isOnline ? 'Estás Online' : 'Estás Offline'}
                 </Text>
               </TouchableOpacity>
             ) : null}
