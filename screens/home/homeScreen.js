@@ -76,7 +76,6 @@ const HomeScreen = ({navigation}) => {
    }
   }, [isOnline])
 
-
   // Watch pedidos pendientes de Firestore
   useEffect(() => {
     
@@ -122,6 +121,7 @@ const HomeScreen = ({navigation}) => {
 
     if (isOnline === false) {
       setShowNuevoPedido(false);
+      setHasPedidoActivo(false);
       setNuevoPedido({});
       return;
     }
@@ -143,51 +143,6 @@ const HomeScreen = ({navigation}) => {
 
   }, [pedidos, isOnline])
   
-
-  
-  //Watch del nuevo pedido - setShowNuevoPedido
-  useEffect(() => {
-
-    if (locationState.pedidoActivoID == null) {
-      return;
-    }
-
-    const subscriber = firestore()
-      .collection('pedidos')
-      .doc(locationState.pedidoActivoID)
-      .onSnapshot(documentSnapshot => {
-        if (documentSnapshot.exists) {
-          const statusDelivery = documentSnapshot.get('status');
-          console.log('User data: ', statusDelivery);
-
-          switch (statusDelivery) {
-            case 'En Proceso':
-              const delivery = documentSnapshot.get('delivery');
-              setDelivery({
-                coordinate: {
-                  latitude: delivery.coordinate.latitude,
-                  longitude: delivery.coordinate.longitude
-                },
-                name: delivery.name,
-                email: delivery.email,
-                phone: delivery.phone
-              });
-              setpedidoStep(appState.DeliveryIniciado);
-              break;
-
-            case 'Finalizado':
-              finalizarPedidoDelivery();
-              break;
-          
-            default:
-              break;
-          }
-        }
-      });
-  
-    return () => subscriber();
-  }, [locationState.pedidoActivoID])
-
   // Watch de camara sigue al conductor
   useEffect(() => {
     const { latitude, longitude } = locationState.location;
@@ -294,20 +249,10 @@ const HomeScreen = ({navigation}) => {
   }
 
   const finalizarPedidoDelivery = async (pedidoID) => {
-    const nuevoPedido = await firestore().collection('pedidos').doc(pedidoID).update({
+    await firestore().collection('pedidos').doc(pedidoID).update({
       status: 'Finalizado'
     }).then(() => {
       console.log('Pedido finalizado!');
-    });
-  }
-
- const finishPedidoDelivery = async () => {
-  await firestore()
-    .collection('pedidos')
-    .doc(locationState.pedidoActivoID)
-    .delete()
-    .then(() => {
-      console.log(`Pedido ${locationState.pedidoActivoID} cancelado`);
     });
   }
 
@@ -330,8 +275,6 @@ const HomeScreen = ({navigation}) => {
       setBackClickCount(0);
     }, 1000);
   }
-
- 
 
   return (
     <View style={{flex: 1, backgroundColor: Colors.whiteColor}}>
