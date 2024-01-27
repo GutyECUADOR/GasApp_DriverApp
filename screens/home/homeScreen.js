@@ -47,9 +47,8 @@ const HomeScreen = ({navigation}) => {
   const [backClickCount, setBackClickCount] = useState(0);
   const [showMenu, setShowMenu] = useState(false);
   const [isOnline, setIsOnline] = useState(false);
-  const [isNuevoPedido, setIsNuevoPedido] = useState(false);  // Flag para mostrar Sheet del pedido
-  const [lastNuevoPedido, setLastNuevoPedido] = useState({});
-  const [showMore, setshowMore] = useState(false);
+  const [showNuevoPedido, setShowNuevoPedido] = useState(false);  // Flag para mostrar Sheet del pedido
+  const [nuevoPedido, setNuevoPedido] = useState({});
   const { user } = useContext(AuthContext)
 
   const { locationState, setHasPedidoActivo, setLocation, setDeliveryLocation, getAddress, getCurrentLocation, followUserLocation } = useContext(LocationContext);
@@ -122,31 +121,31 @@ const HomeScreen = ({navigation}) => {
   useEffect(() => {
 
     if (isOnline === false) {
-      setIsNuevoPedido(false);
-      setLastNuevoPedido({});
+      setShowNuevoPedido(false);
+      setNuevoPedido({});
       return;
     }
 
     //Consultar si aun existe el pedido en lista // -1 si no encuentra
-    let pedidoAunActivoIndex = pedidos.findIndex(pedido => pedido.id === lastNuevoPedido.id);
-        
-    if (pedidoAunActivoIndex >= 0) {
-      setIsNuevoPedido(true);
-      setLastNuevoPedido(pedidos[pedidoAunActivoIndex]); 
-    }else if(pedidos.length > 0){
-      setIsNuevoPedido(true);
-      setLastNuevoPedido(pedidos[pedidos.length-1]); // Get the last   
-    }else{
-      setIsNuevoPedido(false);
-      setLastNuevoPedido({});
+    let pedidoAunActivoIndex = pedidos.findIndex(pedido => pedido.id === nuevoPedido.id);
+    console.log('pedidoAunActivoIndex', pedidoAunActivoIndex);
+    if (pedidoAunActivoIndex > 0) {
+      setShowNuevoPedido(true);
+      setNuevoPedido(pedidos[pedidoAunActivoIndex]);
     }
-   
+
+    // Si aun hay pedidos pendientes, mostrar el ultimo
+    if (pedidos.length > 0) {
+      setShowNuevoPedido(true);
+      setNuevoPedido(pedidos[pedidos.length-1]);
+      return;
+    }
 
   }, [pedidos, isOnline])
   
 
   
-  //Watch del nuevo pedido - isNuevoPedido
+  //Watch del nuevo pedido - setShowNuevoPedido
   useEffect(() => {
 
     if (locationState.pedidoActivoID == null) {
@@ -189,6 +188,7 @@ const HomeScreen = ({navigation}) => {
     return () => subscriber();
   }, [locationState.pedidoActivoID])
 
+  // Watch de camara sigue al conductor
   useEffect(() => {
     const { latitude, longitude } = locationState.location;
     mapViewRef.current?.animateCamera({
@@ -202,8 +202,6 @@ const HomeScreen = ({navigation}) => {
     updateLocationDriver()
   }, [locationState.location])
 
-
-  
   // Crea y actualiza el status del conductor en Firestore
   const updateStatusDriver = async () => {
     const { latitude, longitude } = locationState.location;
@@ -342,7 +340,7 @@ const HomeScreen = ({navigation}) => {
           {displayMap()}
           {toolBar()}
           {currentLocationIcon()}
-          { isNuevoPedido && requestInfoSheet()} 
+          { showNuevoPedido && requestInfoSheet()} 
           { locationState.hasPedidoActivo && passengerInfoSheet()} 
 
         </View>
@@ -503,7 +501,7 @@ const HomeScreen = ({navigation}) => {
         <ScrollView showsVerticalScrollIndicator={false}>
           {passengerInfo()}
         </ScrollView>
-        {goToPickupButton()}
+        {finalizarPedidoButton()}
       </Animatable.View>
     );
   }
@@ -512,17 +510,17 @@ const HomeScreen = ({navigation}) => {
     return <View style={{...styles.sheetIndicatorStyle}} />;
   }
 
-  function goToPickupButton() {
+  function finalizarPedidoButton() {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => {
-          setIsNuevoPedido(false);
+          setShowNuevoPedido(false);
           setHasPedidoActivo(false);
-          finalizarPedidoDelivery(lastNuevoPedido.id);
+          finalizarPedidoDelivery(nuevoPedido.id);
         }}
         style={styles.buttonStyle}>
-        <Text style={{...Fonts.whiteColor18Bold}}>Finalizar</Text>
+        <Text style={{...Fonts.whiteColor18Bold}}>Finalizar Pedido</Text>
       </TouchableOpacity>
     );
   }
@@ -534,10 +532,11 @@ const HomeScreen = ({navigation}) => {
           activeOpacity={0.8}
           onPress={() => {
             setIsOnline(true);
-            setIsNuevoPedido(false);
+            setShowNuevoPedido(false); // Ocultamos el sheet de aceptar pedido
             setHasPedidoActivo(true);
-            updatePedidoDelivery(lastNuevoPedido.id);
-            console.log(lastNuevoPedido.id);
+            
+            updatePedidoDelivery(nuevoPedido.id);
+            console.log('nuevoPedido.id', nuevoPedido.id);
           }}
           style={styles.buttonStyle}>
           <Text style={{...Fonts.whiteColor18Bold}}>Aceptar</Text>
@@ -545,8 +544,8 @@ const HomeScreen = ({navigation}) => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            setIsNuevoPedido(false);
-            setLastNuevoPedido({});
+            setShowNuevoPedido(false);
+            setNuevoPedido({});
           }}
           style={{
             ...styles.buttonCancelStyle
@@ -581,7 +580,7 @@ const HomeScreen = ({navigation}) => {
           marginTop: Sizes.fixPadding
         }}>
         <Text style={{textAlign: 'center', ...Fonts.blackColor17SemiBold}}>
-          { lastNuevoPedido?.address }
+          { nuevoPedido?.address }
         </Text>
         <View
           style={{
@@ -600,10 +599,10 @@ const HomeScreen = ({navigation}) => {
               Dirección
             </Text>
             <Text numberOfLines={1} style={{...Fonts.blackColor15SemiBold}}>
-            { lastNuevoPedido?.name }
+            { nuevoPedido?.name }
             </Text>
             <Text numberOfLines={1} style={{...Fonts.blackColor15SemiBold}}>
-            ID: { lastNuevoPedido?.id }
+            ID: { nuevoPedido?.id }
             </Text>
           </View>
         </View>
