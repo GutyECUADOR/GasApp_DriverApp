@@ -6,7 +6,8 @@ import {
   ImageBackground,
   Image,
   TouchableOpacity,
-  ScrollView
+  ScrollView,
+  Alert
 } from 'react-native';
 import React, {useState, useCallback, useRef, useEffect, useContext} from 'react';
 import {Colors, Fonts, Sizes, screenHeight, screenWidth, commonStyles} from '../../constants/styles';
@@ -156,6 +157,47 @@ const HomeScreen = ({navigation}) => {
 
     updateLocationDriver()
   }, [locationState.location])
+
+   //Watch Firestore del pedido activo
+   useEffect(() => {
+
+    if (nuevoPedido.id == null) {
+      return;
+    }
+
+    const subscriber = firestore()
+      .collection('pedidos')
+      .doc(nuevoPedido.id)
+      .onSnapshot(documentSnapshot => {
+        if (documentSnapshot.exists) {
+          const statusDelivery = documentSnapshot.get('status');
+          console.log('statusDelivery: ', statusDelivery);
+
+          switch (statusDelivery) {
+            case 'En Proceso':
+              
+              break;
+
+            case 'Finalizado':
+              Alert.alert('Pedido finalizado', 'El delivery se ha marcado como finalizado el pedido. Gracias por utilizar la app', [ {
+                text: 'Aceptar',
+                onPress: () => {
+                  setShowNuevoPedido(false);
+                  setHasPedidoActivo(false);
+                  finalizarPedidoDelivery(nuevoPedido.id);
+                },
+              }]);
+              break;
+          
+            default:
+              break;
+          }
+        }
+      });
+  
+    return () => subscriber();
+  }, [])
+
 
   // Crea y actualiza el status del conductor en Firestore
   const updateStatusDriver = async () => {
