@@ -196,7 +196,7 @@ const HomeScreen = ({navigation}) => {
       });
   
     return () => subscriber();
-  }, [])
+  }, [nuevoPedido.id])
 
 
   // Crea y actualiza el status del conductor en Firestore
