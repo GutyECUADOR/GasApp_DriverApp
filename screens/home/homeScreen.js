@@ -280,6 +280,7 @@ const HomeScreen = ({navigation}) => {
     const nuevoPedido = await firestore().collection('pedidos').doc(pedidoID).update({
       status: 'En Proceso',
       delivery: {
+        id: user.id,
         name: user.name,
         email: user.email,
         address: locationState.address,
