@@ -1,5 +1,5 @@
 import React, { createContext, useReducer, useEffect} from 'react';
-import { Delivery, Location } from '../interfaces/Location';
+import { Client, Location } from '../interfaces/Location';
 import { LocationReducer, LocationState } from './LocationReducer';
 import Geolocation from '@react-native-community/geolocation';
 import Geocoder from 'react-native-geocoding';
@@ -20,8 +20,8 @@ export const locationInitialState: LocationState = {
     hasLocation: false,
     address: 'Mi Ubicación Actual',
     location: new LocationClass(0, 0),
-    deliveryLocation: new LocationClass(0, 0), // Utilizada para el delivery más cercano
-    delivery: null,  // Utilizado para registrar valor del delivery que acepto el pedido
+    clientLocation: new LocationClass(0, 0), // Utilizada para el delivery más cercano
+    client: null,  // Utilizado para registrar valor del delivery que acepto el pedido
     hasPedidoActivo: false,
     pedidoActivoID: '',
     amount: 0,
@@ -37,8 +37,8 @@ export interface LocationContextProps {
     getAddress: () => Promise<void>;
     followUserLocation: () => void;
     setLocation: (location: Location) => void;
-    setDeliveryLocation: (location: Location) => void;
-    setDelivery: (delivery: Delivery | null) => void;
+    setClientLocation: (location: Location) => void;
+    setClient: (client: Client | null) => void;
     setHasLocation: (hasLocation: boolean) => void;
     setHasPedidoActivo: (hasLocation: boolean) => void;
     setPedidoActivoID: (firestoreID: string) => void;
@@ -104,12 +104,12 @@ export const LocationProvider = ({ children }: any) => {
         dispatch({type: 'setLocation', payload: {location}})
     }
 
-    const setDeliveryLocation = (location: Location) => {
-        dispatch({type: 'setDeliverylocation', payload: {location}})
+    const setClientLocation = (location: Location) => {
+        dispatch({type: 'setClientLocation', payload: {location}})
     }
 
-    const setDelivery = (delivery: Delivery | null) => {
-        dispatch({type: 'setDelivery', payload: {delivery}})
+    const setClient = (client: Client | null) => {
+        dispatch({type: 'setClient', payload: {client}})
     }
 
     const setHasLocation = (hasLocation: boolean) => {
@@ -152,8 +152,8 @@ export const LocationProvider = ({ children }: any) => {
             locationState,
             setLocation,
             followUserLocation,
-            setDeliveryLocation,
-            setDelivery,
+            setClientLocation,
+            setClient,
             setHasLocation,
             setHasPedidoActivo,
             setPedidoActivoID,

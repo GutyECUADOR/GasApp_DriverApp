@@ -3,7 +3,7 @@ export interface Location {
     longitude: number
 }
 
-export interface Delivery {
+export interface Client {
     coordinate: Location,
     name: string,
     email: string,

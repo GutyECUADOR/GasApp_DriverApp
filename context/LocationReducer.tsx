@@ -1,11 +1,11 @@
-import { Location, Delivery } from "../interfaces/Location";
+import { Location, Client } from "../interfaces/Location";
 
 export interface LocationState {
     hasLocation: boolean;
     address: string;
     location: Location;
-    deliveryLocation: Location;
-    delivery: Delivery | null;
+    clientLocation: Location;
+    client: Client | null;
     hasPedidoActivo: boolean;
     pedidoActivoID: string;
     duration: number;
@@ -18,8 +18,8 @@ export interface LocationState {
 type LocationAction = | 
     { type: 'setLocation', payload: { location: Location }}
     | { type: 'setAddress', payload: string }
-    | { type: 'setDeliverylocation', payload: { location: Location } }
-    | { type: 'setDelivery', payload: { delivery: Delivery | null } }
+    | { type: 'setClientLocation', payload: { location: Location } }
+    | { type: 'setClient', payload: { client: Client | null } }
     | { type: 'sethasLocation', payload: boolean }
     | { type: 'setHasPedidoActivo', payload: boolean }
     | { type: 'setPedidoActivoID', payload: string }
@@ -38,17 +38,17 @@ export const LocationReducer = ( state: LocationState, action: LocationAction) :
             }
             break;
 
-        case 'setDeliverylocation':
+        case 'setClientLocation':
             return {
                 ...state,
-                deliveryLocation: action.payload.location
+                clientLocation: action.payload.location
             }
             break;
 
-        case 'setDelivery':
+        case 'setClient':
             return {
                 ...state,
-                delivery: action.payload.delivery
+                client: action.payload.client
             }
             break;
 

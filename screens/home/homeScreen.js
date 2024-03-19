@@ -54,7 +54,7 @@ const HomeScreen = ({navigation}) => {
   const [nuevoPedido, setNuevoPedido] = useState({});
   const { user } = useContext(AuthContext)
 
-  const { locationState, setHasPedidoActivo, setLocation, setDeliveryLocation, getAddress, getCurrentLocation, followUserLocation } = useContext(LocationContext);
+  const { locationState, setHasPedidoActivo, setLocation, setClientLocation, getAddress, getCurrentLocation, followUserLocation } = useContext(LocationContext);
   
   const mapViewRef = useRef();
 
@@ -186,6 +186,7 @@ const HomeScreen = ({navigation}) => {
                 onPress: () => {
                   setShowNuevoPedido(false);
                   setHasPedidoActivo(false);
+                  setClientLocation({latitude: 0, longitude: 0})
                   finalizarPedidoDelivery(nuevoPedido.id);
                 },
               }]);
@@ -208,10 +209,14 @@ const HomeScreen = ({navigation}) => {
       .then(documentSnapshot => {
         if (documentSnapshot.exists) {
           let statusPedido = documentSnapshot.get('status');
+          let client = documentSnapshot.get('client');
+          console.log('client', client.coordinate.latitude);
           if (statusPedido === 'Pendiente') {
             setIsOnline(true);
             setShowNuevoPedido(false); // Ocultamos el sheet de aceptar pedido
             setHasPedidoActivo(true);
+            setClientLocation({latitude: client.coordinate.latitude, longitude: client.coordinate.longitude});
+            console.log(locationState.clientLocation);
             updatePedidoDelivery(nuevoPedido.id); // Actualizamos el ID en el pedido de firestore
             console.log('nuevoPedido.id', nuevoPedido.id);
           }else{
@@ -644,7 +649,7 @@ const HomeScreen = ({navigation}) => {
               description='Hay un pedido pendiente en este sector'
               >
               <Image
-                source={require('../../assets/images/icons/marker2.png')}
+                source={require('../../assets/images/icons/marker3.png')}
                 style={{
                   
                   resizeMode: 'contain'
@@ -653,19 +658,32 @@ const HomeScreen = ({navigation}) => {
             </Marker>
           ))}
           <Marker
-            draggable={true}
             coordinate={locationState.location}
             title='Tu ubicación actual'
             description='No es correcta? Activa el GPS'
           ></Marker>
           <MapViewDirections
-            origin={{latitude: -0.133101371286, longitude: -78.4981757874}}
-            destination={{latitude: -0.1881575, longitude: -78.490166}}
+            origin={locationState.location}
+            destination={locationState.clientLocation}
             apikey={Key.apiKey}
-            strokeColor={Colors.primaryColor}
+            strokeColor={Colors.blackColor}
             strokeWidth={3}
-
           />
+          { locationState.hasPedidoActivo && 
+            <Marker
+            coordinate={locationState.clientLocation}
+            title='Pedido de delivery'
+            description='El cliente ha solicitado su entrega aquí'
+            >
+              <Image
+                source={require('../../assets/images/icons/cilindro_amarillo.png')}
+                style={{
+                  width: 23.0,
+                  height: 43.0,
+                }}
+              />
+            </Marker> 
+          }
         </MapView>
       </View>
     );
