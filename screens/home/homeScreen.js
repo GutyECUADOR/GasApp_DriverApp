@@ -9,9 +9,11 @@ import {
   ScrollView,
   Alert
 } from 'react-native';
+import {Key} from '../../constants/key';
 import React, {useState, useCallback, useRef, useEffect, useContext} from 'react';
 import {Colors, Fonts, Sizes, screenHeight, screenWidth, commonStyles} from '../../constants/styles';
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
+import MapViewDirections from 'react-native-maps-directions';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import {useFocusEffect} from '@react-navigation/native';
 import * as Animatable from 'react-native-animatable';
@@ -198,6 +200,34 @@ const HomeScreen = ({navigation}) => {
     return () => subscriber();
   }, [nuevoPedido.id])
 
+  const aceptarPedido = async () => {
+    firestore()
+      .collection('pedidos')
+      .doc(nuevoPedido.id)
+      .get()
+      .then(documentSnapshot => {
+        if (documentSnapshot.exists) {
+          let statusPedido = documentSnapshot.get('status');
+          if (statusPedido === 'Pendiente') {
+            setIsOnline(true);
+            setShowNuevoPedido(false); // Ocultamos el sheet de aceptar pedido
+            setHasPedidoActivo(true);
+            updatePedidoDelivery(nuevoPedido.id); // Actualizamos el ID en el pedido de firestore
+            console.log('nuevoPedido.id', nuevoPedido.id);
+          }else{
+            Alert.alert('Pedido atendido', 'Este pedido ya fue atendido por otro delivery.', [ {
+              text: 'Aceptar',
+              onPress: () => {
+                setShowNuevoPedido(false);
+                setHasPedidoActivo(false);
+              },
+            }]);
+          }
+        }
+      });
+
+    
+  };
 
   // Crea y actualiza el status del conductor en Firestore
   const updateStatusDriver = async () => {
@@ -517,12 +547,7 @@ const HomeScreen = ({navigation}) => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
-            setIsOnline(true);
-            setShowNuevoPedido(false); // Ocultamos el sheet de aceptar pedido
-            setHasPedidoActivo(true);
-            
-            updatePedidoDelivery(nuevoPedido.id);
-            console.log('nuevoPedido.id', nuevoPedido.id);
+            aceptarPedido();
           }}
           style={styles.buttonStyle}>
           <Text style={{...Fonts.whiteColor18Bold}}>Aceptar</Text>
@@ -633,6 +658,14 @@ const HomeScreen = ({navigation}) => {
             title='Tu ubicación actual'
             description='No es correcta? Activa el GPS'
           ></Marker>
+          <MapViewDirections
+            origin={{latitude: -0.133101371286, longitude: -78.4981757874}}
+            destination={{latitude: -0.1881575, longitude: -78.490166}}
+            apikey={Key.apiKey}
+            strokeColor={Colors.primaryColor}
+            strokeWidth={3}
+
+          />
         </MapView>
       </View>
     );
