@@ -4,6 +4,7 @@ import { LocationReducer, LocationState } from './LocationReducer';
 import Geolocation from '@react-native-community/geolocation';
 import Geocoder from 'react-native-geocoding';
 import {Key} from '../constants/key';
+import Config from "react-native-config";
 
 export class LocationClass implements Location {
     latitude: number;
@@ -138,7 +139,7 @@ export const LocationProvider = ({ children }: any) => {
     }
 
     useEffect(() => {
-        Geocoder.init(Key.apiKey); // TODO - use a valid API key from ConfigFILE
+        Geocoder.init(Config.API_GOOGLEMAPS_KEY || ''); // TODO - use a valid API key from ConfigFILE
         getCurrentLocation().then( location => {
           setHasLocation(true);
         });

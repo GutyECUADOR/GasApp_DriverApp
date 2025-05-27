@@ -110,6 +110,7 @@ const HomeScreen = ({navigation}) => {
   
 
   const updateStatusDriver = async () => {
+    console.log('Actualizando estado del conductor: ', isOnline);
     const { latitude, longitude } = locationState.location;
     // Obtiene una referencia a la colección
     const coleccion = firestore().collection('distribuidores');
@@ -134,11 +135,12 @@ const HomeScreen = ({navigation}) => {
           // Obtiene una referencia a la colección
           const coleccion = firestore().collection('distribuidores');
           // Crea un objeto GeoPoint con latitud y longitud
-          const geoPoint = new firestore.GeoPoint(initialPosition.latitude, initialPosition.longitude);
+          const geoPoint = new firestore.GeoPoint(locationState.location.latitude, locationState.location.longitude);
           // Añade un nuevo documento con datos
           coleccion.add({
             id: user.id,
             name: user.name,
+            email: user.email,
             coordinate: geoPoint,
             isActivo: false
           })
@@ -204,7 +206,8 @@ const HomeScreen = ({navigation}) => {
        email: user.email,
        address: locationState.address,
        coordinate: new firestore.GeoPoint(locationState.location.latitude, locationState.location.longitude),
-     }
+     },
+     status: 'DeliveryIniciado'
     }).then(() => {
       console.log('Pedido updated!');
     });
