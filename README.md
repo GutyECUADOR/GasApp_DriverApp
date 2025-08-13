@@ -11,6 +11,21 @@ First, you will need to start **Metro**, the JavaScript _bundler_ that ships _wi
 To start Metro, run the following command from the _root_ of your React Native project:
 
 ```bash
+# Custom Commands
+
+npx react-native build-android --mode=release
+
+Output android/app/build/outputs/apk/release/app-release.apk
+
+# Limpiar graddle antes de generar APK
+
+cd android
+./gradlew clean
+cd ..
+
+cd android
+./gradlew assembleRelease
+
 # using npm
 npm start
 
