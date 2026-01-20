@@ -110,6 +110,7 @@ export const AuthProvider = ({ children }:any) => {
 
     };
    
+    /* REGISTRO DE USUARIOS */
     const signUp = async( { name, phone, email, password, role }: RegisterData ) => {
 
         try {

@@ -1,9 +1,8 @@
 import axios from "axios";
+import { Config } from "react-native-config";
 
-
-//const baseURL = 'https://pideteungas.com';
-
-const baseURL = 'http://192.168.100.100/gasapp-backend/public';
+//const baseURL = Config.BACKEND_URL;
+const baseURL = 'https://customlaravel.xyz';
 
 const gasAPI = axios.create({ baseURL });
 
